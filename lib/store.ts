@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import AsyncStorage from '@react-native-async-storage/async-storage'
+import { Platform } from 'react-native'
 import { getToday, getWeekDates, dateFromString } from './utils'
 
 export type PracticeType = 'Pitching' | 'Hitting' | 'Fielding'
@@ -230,7 +230,13 @@ export const useStore = create<AppState>()(
     }),
     {
       name: 'practicepal-storage',
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => {
+        if (Platform.OS === 'web') {
+          return localStorage
+        }
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        return require('@react-native-async-storage/async-storage').default
+      }),
     }
   )
 )

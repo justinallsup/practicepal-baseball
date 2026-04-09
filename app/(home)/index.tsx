@@ -10,7 +10,6 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
-import * as Haptics from 'expo-haptics'
 import { useStore } from '../../lib/store'
 import { PracticeType } from '../../lib/store'
 import StreakBadge from '../../components/StreakBadge'
@@ -48,7 +47,10 @@ export default function HomeScreen() {
 
   const handleLogPress = useCallback(async () => {
     if (Platform.OS !== 'web') {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+      try {
+        const Haptics = await import('expo-haptics')
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+      } catch {}
     }
     setSelectedTypes([])
     setShowModal(true)
