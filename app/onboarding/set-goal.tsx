@@ -24,6 +24,9 @@ const GOALS: GoalOption[] = [
   { label: 'Every day', value: 7, description: 'All-in — elite level grind' },
 ]
 
+// Exported so add-reward can access it
+export let pendingGoalChild: { id: string; name: string; avatar: string; goalPerWeek: 3 | 4 | 5 | 7 } | null = null
+
 export default function SetGoal() {
   const [goal, setGoal] = useState<3 | 4 | 5 | 7>(3)
   const completeOnboarding = useStore(s => s.completeOnboarding)
@@ -37,8 +40,10 @@ export default function SetGoal() {
       avatar: pendingChild?.avatar ?? '⚾',
       goalPerWeek: goal,
     }
-    completeOnboarding(child)
-    router.replace('/(home)')
+    // Store in module-level var so add-reward can use it
+    pendingGoalChild = child
+    // Navigate to add-reward (optional step) instead of completing directly
+    router.push('/onboarding/add-reward')
   }
 
   return (

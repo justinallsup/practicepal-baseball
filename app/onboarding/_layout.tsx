@@ -7,6 +7,7 @@ export default function OnboardingLayout() {
       <Stack.Screen name="welcome" />
       <Stack.Screen name="add-child" />
       <Stack.Screen name="set-goal" />
+      <Stack.Screen name="add-reward" />
     </Stack>
   )
 }

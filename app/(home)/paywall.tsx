@@ -16,6 +16,8 @@ export default function PaywallScreen() {
   const getCurrentStreak = useStore(s => s.getCurrentStreak)
   const getWeekLogs = useStore(s => s.getWeekLogs)
   const startTrial = useStore(s => s.startTrial)
+  const reward = useStore(s => s.reward)
+  const getRewardProgress = useStore(s => s.getRewardProgress)
 
   const streak = getCurrentStreak()
   const weekLogs = getWeekLogs()
@@ -42,6 +44,13 @@ export default function PaywallScreen() {
             <Text style={styles.streakHighlight}>{streak}-day streak</Text>
           </Text>
 
+          {/* Reward context */}
+          {reward && (
+            <Text style={styles.rewardSubtext}>
+              {child?.name ?? 'Your player'} is {Math.max(0, reward.targetValue - getRewardProgress())} away from earning {reward.rewardName} 🎯
+            </Text>
+          )}
+
           {/* Streak visual */}
           <View style={styles.streakVisual}>
             <Text style={styles.streakNumber}>{streak}</Text>
@@ -51,7 +60,7 @@ export default function PaywallScreen() {
 
           {/* Weekly progress dots */}
           <View style={styles.dotsContainer}>
-            {weekDates.map((date, i) => {
+            {weekDates.map((date) => {
               const logged = weekLogs.some(l => l.date === date)
               return (
                 <View
@@ -153,6 +162,17 @@ const styles = StyleSheet.create({
   streakHighlight: {
     color: '#f97316',
     fontWeight: '700',
+  },
+  rewardSubtext: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.75)',
+    textAlign: 'center',
+    fontWeight: '600',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    width: '100%',
   },
   streakVisual: {
     flexDirection: 'row',
@@ -301,3 +321,4 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
 })
+

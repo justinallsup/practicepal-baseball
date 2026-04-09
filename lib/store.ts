@@ -5,6 +5,17 @@ import { getToday, getWeekDates, dateFromString } from './utils'
 
 export type PracticeType = 'Pitching' | 'Hitting' | 'Fielding'
 
+export type RewardTargetType = 'weekly_goal' | 'streak_goal'
+
+export interface Reward {
+  id: string
+  childName: string // denormalized for display
+  rewardName: string
+  targetType: RewardTargetType
+  targetValue: number // e.g. 5 (days streak) or 1 (complete weekly goal)
+  earnedAt: string | null // ISO if earned, null if not yet
+}
+
 export interface Child {
   id: string
   name: string
@@ -35,6 +46,9 @@ export interface AppState {
   trialStartDate: string | null
   totalLogsCount: number
 
+  // Reward
+  reward: Reward | null
+
   // Actions
   completeOnboarding: (child: Child) => void
   logPractice: (types: PracticeType[]) => { alreadyLoggedToday: boolean }
@@ -46,6 +60,11 @@ export interface AppState {
   setSubscriptionActive: () => void
   shouldShowPaywall: () => boolean
   reset: () => void
+  setReward: (reward: Omit<Reward, 'id' | 'earnedAt'>) => void
+  clearReward: () => void
+  markRewardEarned: () => void
+  getRewardProgress: () => number
+  isRewardEarned: () => boolean
 }
 
 export const useStore = create<AppState>()(
@@ -57,6 +76,7 @@ export const useStore = create<AppState>()(
       subscriptionStatus: 'free',
       trialStartDate: null,
       totalLogsCount: 0,
+      reward: null,
 
       completeOnboarding: (child: Child) => {
         set({ onboardingComplete: true, child })
@@ -166,7 +186,46 @@ export const useStore = create<AppState>()(
           subscriptionStatus: 'free',
           trialStartDate: null,
           totalLogsCount: 0,
+          reward: null,
         })
+      },
+
+      setReward: (rewardData: Omit<Reward, 'id' | 'earnedAt'>) => {
+        set({
+          reward: {
+            ...rewardData,
+            id: Date.now().toString(),
+            earnedAt: null,
+          },
+        })
+      },
+
+      clearReward: () => {
+        set({ reward: null })
+      },
+
+      markRewardEarned: () => {
+        const { reward } = get()
+        if (!reward) return
+        set({ reward: { ...reward, earnedAt: new Date().toISOString() } })
+      },
+
+      getRewardProgress: () => {
+        const state = get()
+        const { reward } = state
+        if (!reward) return 0
+        if (reward.targetType === 'streak_goal') {
+          return state.getCurrentStreak()
+        }
+        // weekly_goal: count unique days with logs this week
+        const weekLogs = state.getWeekLogs()
+        const uniqueDays = new Set(weekLogs.map(l => l.date))
+        return uniqueDays.size
+      },
+
+      isRewardEarned: () => {
+        const { reward } = get()
+        return reward?.earnedAt !== null && reward?.earnedAt !== undefined
       },
     }),
     {

@@ -16,6 +16,7 @@ import { PracticeType } from '../../lib/store'
 import StreakBadge from '../../components/StreakBadge'
 import WeeklyTracker from '../../components/WeeklyTracker'
 import PracticeTypeSelector from '../../components/PracticeTypeSelector'
+import RewardProgress from '../../components/RewardProgress'
 
 export default function HomeScreen() {
   const child = useStore(s => s.child)
@@ -25,10 +26,16 @@ export default function HomeScreen() {
   const getBestStreak = useStore(s => s.getBestStreak)
   const hasLoggedToday = useStore(s => s.hasLoggedToday)
   const shouldShowPaywall = useStore(s => s.shouldShowPaywall)
+  const reward = useStore(s => s.reward)
+  const getRewardProgress = useStore(s => s.getRewardProgress)
+  const isRewardEarned = useStore(s => s.isRewardEarned)
+  const markRewardEarned = useStore(s => s.markRewardEarned)
+  const clearReward = useStore(s => s.clearReward)
 
   const [showModal, setShowModal] = useState(false)
   const [selectedTypes, setSelectedTypes] = useState<PracticeType[]>([])
   const [loggedThisSession, setLoggedThisSession] = useState(false)
+  const [showRewardModal, setShowRewardModal] = useState(false)
 
   // Animation refs
   const successScale = useRef(new Animated.Value(0)).current
@@ -58,6 +65,16 @@ export default function HomeScreen() {
     const result = logPractice(selectedTypes)
     if (!result.alreadyLoggedToday) {
       setLoggedThisSession(true)
+
+      // Check if reward was just earned
+      if (reward && !isRewardEarned()) {
+        const progress = getRewardProgress()
+        if (progress >= reward.targetValue) {
+          markRewardEarned()
+          setShowRewardModal(true)
+        }
+      }
+
       // Animate success
       Animated.parallel([
         Animated.spring(successScale, {
@@ -81,9 +98,10 @@ export default function HomeScreen() {
         }, 1800)
       })
     }
-  }, [selectedTypes, logPractice, shouldShowPaywall])
+  }, [selectedTypes, logPractice, shouldShowPaywall, reward, isRewardEarned, getRewardProgress, markRewardEarned])
 
   const newStreak = getCurrentStreak()
+  const rewardEarned = isRewardEarned()
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -106,6 +124,9 @@ export default function HomeScreen() {
       <View style={styles.trackerContainer}>
         <WeeklyTracker logs={logs} />
       </View>
+
+      {/* Reward progress card */}
+      <RewardProgress onAddReward={() => router.push('/onboarding/add-reward')} />
 
       {/* Main area */}
       <View style={styles.mainArea}>
@@ -144,6 +165,11 @@ export default function HomeScreen() {
                   {newStreak} days in a row — keep it going!
                 </Text>
               </View>
+            )}
+            {loggedThisSession && reward && !rewardEarned && (
+              <Text style={styles.rewardNudge}>
+                1 step closer to {reward.rewardName} 🎯
+              </Text>
             )}
             {loggedThisSession && (
               <Animated.Text style={[styles.confetti, { opacity: confettiOpacity }]}>
@@ -198,6 +224,28 @@ export default function HomeScreen() {
               activeOpacity={0.7}
             >
               <Text style={styles.skipButtonText}>Skip</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Reward earned modal */}
+      <Modal visible={showRewardModal} transparent animationType="fade">
+        <View style={styles.rewardModalOverlay}>
+          <View style={styles.rewardModalCard}>
+            <Text style={styles.rewardModalEmoji}>🎉</Text>
+            <Text style={styles.rewardModalTitle}>Reward Earned!</Text>
+            <Text style={styles.rewardModalReward}>{reward?.rewardName}</Text>
+            <Text style={styles.rewardModalSub}>{child?.name} earned this reward!</Text>
+            <TouchableOpacity
+              onPress={() => {
+                clearReward()
+                setShowRewardModal(false)
+              }}
+              style={styles.rewardModalBtn}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.rewardModalBtnText}>Set New Reward</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -306,6 +354,13 @@ const styles = StyleSheet.create({
     color: '#92400e',
     textAlign: 'center',
   },
+  rewardNudge: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1e40af',
+    textAlign: 'center',
+    marginTop: 4,
+  },
   confetti: {
     fontSize: 28,
     marginTop: 8,
@@ -343,7 +398,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
   },
-  // Modal
+  // Practice type modal
   modalOverlay: {
     flex: 1,
     justifyContent: 'flex-end',
@@ -398,5 +453,59 @@ const styles = StyleSheet.create({
   skipButtonText: {
     fontSize: 15,
     color: '#94a3b8',
+  },
+  // Reward earned modal
+  rewardModalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    padding: 32,
+  },
+  rewardModalCard: {
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    padding: 32,
+    alignItems: 'center',
+    gap: 8,
+    width: '100%',
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 16,
+  },
+  rewardModalEmoji: {
+    fontSize: 56,
+    marginBottom: 4,
+  },
+  rewardModalTitle: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: '#0f172a',
+  },
+  rewardModalReward: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1e40af',
+  },
+  rewardModalSub: {
+    fontSize: 15,
+    color: '#64748b',
+    textAlign: 'center',
+    marginTop: 4,
+    marginBottom: 8,
+  },
+  rewardModalBtn: {
+    backgroundColor: '#1e40af',
+    borderRadius: 14,
+    paddingHorizontal: 28,
+    paddingVertical: 14,
+    marginTop: 8,
+  },
+  rewardModalBtnText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
   },
 })
