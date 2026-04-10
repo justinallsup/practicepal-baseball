@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { Platform } from 'react-native'
 import { getToday, getWeekDates, dateFromString } from './utils'
+import { practiceStoreSlice, PracticeStoreState } from './practice-store'
 
 export type PracticeType = 'Pitching' | 'Hitting' | 'Fielding'
 
@@ -52,7 +53,7 @@ export interface PointsHistoryEntry {
   reason: string
 }
 
-export interface AppState {
+export interface AppState extends PracticeStoreState {
   // Onboarding
   onboardingComplete: boolean
 
@@ -182,6 +183,9 @@ export const useStore = create<AppState>()(
       notificationsEnabled: false,
       notificationHour: 18,
       hasAskedNotificationPermission: false,
+
+      // Merge practice store slice
+      ...practiceStoreSlice(set, get),
 
       completeOnboarding: (child: Child) => {
         set({ onboardingComplete: true, child })

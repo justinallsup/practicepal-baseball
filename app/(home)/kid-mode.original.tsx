@@ -11,7 +11,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import { useStore } from '../../lib/store'
-import { PracticeTimerModal } from '../../components/PracticeTimerModal'
 
 export default function KidModeScreen() {
   const child = useStore(s => s.child)
@@ -25,7 +24,6 @@ export default function KidModeScreen() {
   const markRewardEarned = useStore(s => s.markRewardEarned)
   const clearReward = useStore(s => s.clearReward)
 
-  const [showPracticeModal, setShowPracticeModal] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const [rewardComplete, setRewardComplete] = useState(false)
   const successOpacity = useRef(new Animated.Value(0)).current
@@ -41,13 +39,8 @@ export default function KidModeScreen() {
   const displayCount = Math.min(rewardTarget, 10)
   const filledCount = Math.min(progress, displayCount)
 
-  const handleStartPractice = () => {
+  const handleStartPractice = async () => {
     if (loggedToday) return
-    setShowPracticeModal(true)
-  }
-
-  const handlePracticeComplete = async () => {
-    setShowPracticeModal(false)
 
     if (Platform.OS !== 'web') {
       try {
@@ -72,10 +65,6 @@ export default function KidModeScreen() {
         useNativeDriver: true,
       }).start()
     }
-  }
-
-  const handlePracticeCancel = () => {
-    setShowPracticeModal(false)
   }
 
   return (
@@ -188,13 +177,6 @@ export default function KidModeScreen() {
           ))}
         </View>
       </ScrollView>
-
-      {/* Practice Timer Modal */}
-      <PracticeTimerModal
-        visible={showPracticeModal}
-        onComplete={handlePracticeComplete}
-        onCancel={handlePracticeCancel}
-      />
     </SafeAreaView>
   )
 }
@@ -317,86 +299,88 @@ const styles = StyleSheet.create({
     color: '#22c55e',
   },
   rewardCompleteCard: {
-    backgroundColor: '#fef3c7',
+    backgroundColor: '#fff',
     borderRadius: 24,
-    padding: 24,
+    padding: 28,
     width: '100%',
     alignItems: 'center',
     gap: 12,
-    borderWidth: 2,
-    borderColor: '#fbbf24',
+    shadowColor: '#f59e0b',
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 6,
   },
   rewardCompleteEmoji: {
-    fontSize: 64,
+    fontSize: 56,
   },
   rewardCompleteTitle: {
     fontSize: 28,
-    fontWeight: '800',
-    color: '#78350f',
+    fontWeight: '900',
+    color: '#0f172a',
   },
   rewardCompleteSubtitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#92400e',
+    color: '#1e40af',
   },
   rewardCompleteButtons: {
     width: '100%',
-    gap: 12,
+    gap: 10,
     marginTop: 8,
   },
   claimButton: {
-    backgroundColor: '#22c55e',
-    paddingVertical: 16,
-    borderRadius: 16,
+    backgroundColor: '#1e40af',
+    borderRadius: 14,
+    height: 52,
+    justifyContent: 'center',
     alignItems: 'center',
   },
   claimButtonText: {
-    fontSize: 18,
-    fontWeight: '800',
     color: '#fff',
-  },
-  newGoalButton: {
-    backgroundColor: '#fff',
-    paddingVertical: 14,
-    borderRadius: 16,
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#fbbf24',
-  },
-  newGoalButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#92400e',
+  },
+  newGoalButton: {
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  newGoalButtonText: {
+    fontSize: 15,
+    color: '#64748b',
+    fontWeight: '600',
   },
   practiceButton: {
-    backgroundColor: '#22c55e',
-    borderRadius: 24,
-    paddingVertical: 24,
-    paddingHorizontal: 32,
-    width: '100%',
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    backgroundColor: '#1e40af',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 8,
-    shadowColor: '#22c55e',
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 6,
+    shadowColor: '#1e40af',
+    shadowOpacity: 0.35,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 10,
   },
   practiceButtonDone: {
-    backgroundColor: '#cbd5e1',
-    shadowColor: '#64748b',
+    backgroundColor: '#22c55e',
+    shadowColor: '#22c55e',
   },
   practiceButtonEmoji: {
-    fontSize: 40,
+    fontSize: 48,
   },
   practiceButtonText: {
-    fontSize: 20,
-    fontWeight: '800',
     color: '#fff',
+    fontSize: 15,
+    fontWeight: '700',
+    textAlign: 'center',
+    paddingHorizontal: 8,
   },
   doneSubtext: {
     fontSize: 14,
-    fontWeight: '600',
     color: '#64748b',
     textAlign: 'center',
   },
@@ -405,7 +389,12 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 20,
     width: '100%',
-    gap: 12,
+    gap: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
   },
   teammatesTitle: {
     fontSize: 16,
@@ -417,12 +406,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
   },
   teammateName: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
-    color: '#475569',
+    color: '#334155',
   },
   teammatePractices: {
     fontSize: 14,
