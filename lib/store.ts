@@ -32,9 +32,34 @@ export interface PracticeLog {
   feeling?: 'easy' | 'solid' | 'hard' | null
 }
 
+export interface RedemptionRequest {
+  id: string
+  itemName: string
+  pointCost: number
+  status: 'pending' | 'approved' | 'denied'
+  requestedAt: string
+}
+
+export interface LeaderboardEntry {
+  name: string
+  practices: number
+  isYou: boolean
+}
+
+export interface PointsHistoryEntry {
+  date: string
+  amount: number
+  reason: string
+}
+
 export interface AppState {
   // Onboarding
   onboardingComplete: boolean
+
+  // Onboarding answers
+  practiceFrequency: 'rarely' | '1-2x' | '3x+' | null
+  improvementGoals: string[]
+  onboardingRewardSuggestion: string | null
 
   // Child
   child: Child | null
@@ -43,12 +68,31 @@ export interface AppState {
   logs: PracticeLog[]
 
   // Subscription
-  subscriptionStatus: 'free' | 'trial' | 'active'
+  subscriptionStatus: 'free' | 'trial' | 'expired' | 'active'
   trialStartDate: string | null
+  trialStartedAt: string | null
+  subscriptionPlan: 'monthly' | 'yearly' | null
   totalLogsCount: number
 
   // Reward
   reward: Reward | null
+
+  // Points economy
+  totalPoints: number
+  pointsHistory: PointsHistoryEntry[]
+
+  // Mode
+  mode: 'parent' | 'kid'
+
+  // Store / redemption requests
+  redemptionRequests: RedemptionRequest[]
+
+  // Leaderboard
+  leaderboard: LeaderboardEntry[]
+
+  // Invite
+  inviteCode: string
+  referralCount: number
 
   // Notifications
   notificationsEnabled: boolean
@@ -64,6 +108,8 @@ export interface AppState {
   getWeekLogs: () => PracticeLog[]
   hasLoggedToday: () => boolean
   startTrial: () => void
+  activateSubscription: (plan: 'monthly' | 'yearly') => void
+  isTrialExpired: () => boolean
   setSubscriptionActive: () => void
   shouldShowPaywall: () => boolean
   reset: () => void
@@ -74,18 +120,65 @@ export interface AppState {
   isRewardEarned: () => boolean
   setNotificationsEnabled: (enabled: boolean) => void
   setHasAskedNotificationPermission: (asked: boolean) => void
+
+  // New actions
+  setPracticeFrequency: (freq: 'rarely' | '1-2x' | '3x+') => void
+  setImprovementGoals: (goals: string[]) => void
+  setOnboardingRewardSuggestion: (reward: string) => void
+  addPoints: (amount: number, reason: string) => void
+  requestRedemption: (itemName: string, pointCost: number) => void
+  approveRedemption: (id: string) => void
+  denyRedemption: (id: string) => void
+  setMode: (mode: 'parent' | 'kid') => void
+  refreshLeaderboard: () => void
+}
+
+function generateInviteCode(): string {
+  return 'BALL' + Math.floor(1000 + Math.random() * 9000)
+}
+
+function generateLeaderboard(yourPractices: number): LeaderboardEntry[] {
+  const names = ['Jake', 'Tyler', 'Mason', 'Aiden', 'Liam', 'Noah', 'Ethan']
+  const others = names
+    .map(name => ({
+      name,
+      practices: Math.max(0, yourPractices + Math.floor(Math.random() * 5) - 2),
+      isYou: false,
+    }))
+    .filter(e => e.practices !== yourPractices)
+    .slice(0, 4)
+
+  const you: LeaderboardEntry = {
+    name: 'You',
+    practices: yourPractices,
+    isYou: true,
+  }
+  const all = [...others, you].sort((a, b) => b.practices - a.practices)
+  return all
 }
 
 export const useStore = create<AppState>()(
   persist(
     (set, get) => ({
       onboardingComplete: false,
+      practiceFrequency: null,
+      improvementGoals: [],
+      onboardingRewardSuggestion: null,
       child: null,
       logs: [],
       subscriptionStatus: 'free',
       trialStartDate: null,
+      trialStartedAt: null,
+      subscriptionPlan: null,
       totalLogsCount: 0,
       reward: null,
+      totalPoints: 0,
+      pointsHistory: [],
+      mode: 'parent',
+      redemptionRequests: [],
+      leaderboard: generateLeaderboard(0),
+      inviteCode: generateInviteCode(),
+      referralCount: 0,
       notificationsEnabled: false,
       notificationHour: 18,
       hasAskedNotificationPermission: false,
@@ -114,6 +207,8 @@ export const useStore = create<AppState>()(
           logs: [...s.logs, newLog],
           totalLogsCount: s.totalLogsCount + 1,
         }))
+        // Add 10 points for logging practice
+        get().addPoints(10, 'Practice logged')
         return { alreadyLoggedToday: false }
       },
 
@@ -184,10 +279,28 @@ export const useStore = create<AppState>()(
       },
 
       startTrial: () => {
+        const now = new Date().toISOString()
         set({
           subscriptionStatus: 'trial',
-          trialStartDate: new Date().toISOString(),
+          trialStartDate: now,
+          trialStartedAt: now,
         })
+      },
+
+      activateSubscription: (plan: 'monthly' | 'yearly') => {
+        set({
+          subscriptionStatus: 'active',
+          subscriptionPlan: plan,
+        })
+      },
+
+      isTrialExpired: () => {
+        const { trialStartedAt, subscriptionStatus } = get()
+        if (subscriptionStatus === 'active') return false
+        if (!trialStartedAt) return false
+        const trialStart = new Date(trialStartedAt)
+        const expiryDate = new Date(trialStart.getTime() + 3 * 24 * 60 * 60 * 1000)
+        return new Date() > expiryDate
       },
 
       setSubscriptionActive: () => {
@@ -202,12 +315,24 @@ export const useStore = create<AppState>()(
       reset: () => {
         set({
           onboardingComplete: false,
+          practiceFrequency: null,
+          improvementGoals: [],
+          onboardingRewardSuggestion: null,
           child: null,
           logs: [],
           subscriptionStatus: 'free',
           trialStartDate: null,
+          trialStartedAt: null,
+          subscriptionPlan: null,
           totalLogsCount: 0,
           reward: null,
+          totalPoints: 0,
+          pointsHistory: [],
+          mode: 'parent',
+          redemptionRequests: [],
+          leaderboard: generateLeaderboard(0),
+          inviteCode: generateInviteCode(),
+          referralCount: 0,
           notificationsEnabled: false,
           notificationHour: 18,
           hasAskedNotificationPermission: false,
@@ -258,6 +383,81 @@ export const useStore = create<AppState>()(
 
       setHasAskedNotificationPermission: (asked: boolean) => {
         set({ hasAskedNotificationPermission: asked })
+      },
+
+      // New actions
+      setPracticeFrequency: (freq: 'rarely' | '1-2x' | '3x+') => {
+        set({ practiceFrequency: freq })
+      },
+
+      setImprovementGoals: (goals: string[]) => {
+        set({ improvementGoals: goals })
+      },
+
+      setOnboardingRewardSuggestion: (reward: string) => {
+        set({ onboardingRewardSuggestion: reward })
+      },
+
+      addPoints: (amount: number, reason: string) => {
+        const today = getToday()
+        set(s => ({
+          totalPoints: s.totalPoints + amount,
+          pointsHistory: [
+            ...s.pointsHistory,
+            { date: today, amount, reason },
+          ],
+        }))
+      },
+
+      requestRedemption: (itemName: string, pointCost: number) => {
+        const state = get()
+        if (state.totalPoints < pointCost) return
+        const id = Date.now().toString()
+        set(s => ({
+          totalPoints: s.totalPoints - pointCost,
+          redemptionRequests: [
+            ...s.redemptionRequests,
+            {
+              id,
+              itemName,
+              pointCost,
+              status: 'pending',
+              requestedAt: new Date().toISOString(),
+            },
+          ],
+        }))
+      },
+
+      approveRedemption: (id: string) => {
+        set(s => ({
+          redemptionRequests: s.redemptionRequests.map(r =>
+            r.id === id ? { ...r, status: 'approved' } : r
+          ),
+        }))
+      },
+
+      denyRedemption: (id: string) => {
+        // Refund points on denial
+        const req = get().redemptionRequests.find(r => r.id === id)
+        if (req) {
+          set(s => ({
+            totalPoints: s.totalPoints + req.pointCost,
+            redemptionRequests: s.redemptionRequests.map(r =>
+              r.id === id ? { ...r, status: 'denied' } : r
+            ),
+          }))
+        }
+      },
+
+      setMode: (mode: 'parent' | 'kid') => {
+        set({ mode })
+      },
+
+      refreshLeaderboard: () => {
+        const state = get()
+        const weekLogs = state.getWeekLogs()
+        const yourPractices = new Set(weekLogs.map(l => l.date)).size
+        set({ leaderboard: generateLeaderboard(yourPractices) })
       },
     }),
     {

@@ -84,3 +84,53 @@ export async function sendReEngagementNotification(): Promise<void> {
     trigger: null, // fire immediately
   })
 }
+
+// Day-specific onboarding notifications
+
+export async function scheduleDay1Notification(): Promise<void> {
+  if (Platform.OS === 'web' || !Notifications) return
+  const trigger = new Date()
+  trigger.setDate(trigger.getDate() + 1)
+  trigger.setHours(10, 0, 0, 0)
+  await Notifications.scheduleNotificationAsync({
+    identifier: 'day1-reminder',
+    content: {
+      title: 'Quick 10-minute session today = progress ⚾',
+      body: "Log practice and build the habit — they're counting on you!",
+      data: { type: 'day1_reminder' },
+    },
+    trigger: { date: trigger } as any,
+  })
+}
+
+export async function scheduleDay2Notification(): Promise<void> {
+  if (Platform.OS === 'web' || !Notifications) return
+  const trigger = new Date()
+  trigger.setDate(trigger.getDate() + 2)
+  trigger.setHours(10, 0, 0, 0)
+  await Notifications.scheduleNotificationAsync({
+    identifier: 'day2-reminder',
+    content: {
+      title: "They're close to their reward 👀",
+      body: 'Keep logging practice to unlock that reward 🎯',
+      data: { type: 'day2_reminder' },
+    },
+    trigger: { date: trigger } as any,
+  })
+}
+
+export async function scheduleDay3Notification(): Promise<void> {
+  if (Platform.OS === 'web' || !Notifications) return
+  const trigger = new Date()
+  trigger.setDate(trigger.getDate() + 3)
+  trigger.setHours(10, 0, 0, 0)
+  await Notifications.scheduleNotificationAsync({
+    identifier: 'day3-reminder',
+    content: {
+      title: "Don't lose their progress ⚾",
+      body: "Your free trial ends today — keep the momentum going!",
+      data: { type: 'day3_reminder' },
+    },
+    trigger: { date: trigger } as any,
+  })
+}

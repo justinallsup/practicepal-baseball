@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import {
   View,
   Text,
@@ -9,24 +9,32 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import { useStore } from '../../lib/store'
-import { getWeekDates } from '../../lib/utils'
+
+// TODO: integrate Stripe or RevenueCat
 
 export default function PaywallScreen() {
   const child = useStore(s => s.child)
   const getCurrentStreak = useStore(s => s.getCurrentStreak)
   const getWeekLogs = useStore(s => s.getWeekLogs)
+  const activateSubscription = useStore(s => s.activateSubscription)
   const startTrial = useStore(s => s.startTrial)
+  const subscriptionStatus = useStore(s => s.subscriptionStatus)
   const reward = useStore(s => s.reward)
   const getRewardProgress = useStore(s => s.getRewardProgress)
+  const totalPoints = useStore(s => s.totalPoints)
+  const totalLogsCount = useStore(s => s.totalLogsCount)
+
+  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('yearly')
 
   const streak = getCurrentStreak()
   const weekLogs = getWeekLogs()
-  const weekDates = getWeekDates()
-  const goal = child?.goalPerWeek ?? 3
+  const rewardProgress = reward ? getRewardProgress() : 0
+  const rewardPct = reward ? Math.round((rewardProgress / reward.targetValue) * 100) : 0
 
-  const handleStartTrial = () => {
-    startTrial()
-    router.back()
+  const handleContinue = () => {
+    // TODO: integrate Stripe or RevenueCat for real payment
+    activateSubscription(selectedPlan)
+    router.replace('/(home)')
   }
 
   const handleMaybeLater = () => {
@@ -38,82 +46,93 @@ export default function PaywallScreen() {
       <SafeAreaView style={styles.safe}>
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           {/* Header */}
-          <Text style={styles.headline}>Don't break the streak 🔥</Text>
+          <Text style={styles.headline}>Keep your player progressing ⚾</Text>
           <Text style={styles.subhead}>
-            {child?.name ?? 'Your player'} is on a{' '}
-            <Text style={styles.streakHighlight}>{streak}-day streak</Text>
+            They've already started — don't lose momentum
           </Text>
 
-          {/* Reward context */}
-          {reward && (
-            <Text style={styles.rewardSubtext}>
-              {child?.name ?? 'Your player'} is {Math.max(0, reward.targetValue - getRewardProgress())} away from earning {reward.rewardName} 🎯
-            </Text>
-          )}
-
-          {/* Streak visual */}
-          <View style={styles.streakVisual}>
-            <Text style={styles.streakNumber}>{streak}</Text>
-            <Text style={styles.streakEmoji}>🔥</Text>
-          </View>
-          <Text style={styles.streakLabel}>day streak</Text>
-
-          {/* Weekly progress dots */}
-          <View style={styles.dotsContainer}>
-            {weekDates.map((date) => {
-              const logged = weekLogs.some(l => l.date === date)
-              return (
-                <View
-                  key={date}
-                  style={[styles.dot, logged && styles.dotFilled]}
-                />
-              )
-            })}
-          </View>
-          <Text style={styles.dotsLabel}>
-            {weekLogs.length} of {goal} days this week
-          </Text>
-
-          {/* Offer card */}
-          <View style={styles.offerCard}>
-            <View style={styles.offerBadge}>
-              <Text style={styles.offerBadgeText}>MOST POPULAR</Text>
+          {/* Dynamic stats */}
+          <View style={styles.statsCard}>
+            <View style={styles.statRow}>
+              <Text style={styles.statIcon}>✅</Text>
+              <Text style={styles.statText}>{totalLogsCount} practices completed</Text>
             </View>
-            <Text style={styles.offerTitle}>3-Day Free Trial</Text>
-            <Text style={styles.offerPrice}>Then $29.99/year</Text>
-            <Text style={styles.offerCancel}>Cancel anytime</Text>
-
-            <View style={styles.offerDivider} />
-
-            <View style={styles.offerFeature}>
-              <Text style={styles.offerFeatureIcon}>✓</Text>
-              <Text style={styles.offerFeatureText}>Unlimited practice logging</Text>
+            <View style={styles.statRow}>
+              <Text style={styles.statIcon}>⭐</Text>
+              <Text style={styles.statText}>{totalPoints} points earned</Text>
             </View>
-            <View style={styles.offerFeature}>
-              <Text style={styles.offerFeatureIcon}>✓</Text>
-              <Text style={styles.offerFeatureText}>Streak tracking & history</Text>
-            </View>
-            <View style={styles.offerFeature}>
-              <Text style={styles.offerFeatureIcon}>✓</Text>
-              <Text style={styles.offerFeatureText}>Weekly progress reports</Text>
-            </View>
+            {reward && (
+              <View style={styles.statRow}>
+                <Text style={styles.statIcon}>🎯</Text>
+                <Text style={styles.statText}>{rewardPct}% toward {reward.rewardName}</Text>
+              </View>
+            )}
+            {streak > 0 && (
+              <View style={styles.statRow}>
+                <Text style={styles.statIcon}>🔥</Text>
+                <Text style={styles.statText}>{streak}-day streak</Text>
+              </View>
+            )}
           </View>
 
-          {/* Warning */}
-          <View style={styles.warningRow}>
-            <Text style={styles.warningText}>
-              ⚠️  If you stop now, your streak resets to zero
-            </Text>
+          {/* Plan selector */}
+          <View style={styles.plansRow}>
+            <TouchableOpacity
+              style={[styles.planCard, selectedPlan === 'monthly' && styles.planCardSelected]}
+              onPress={() => setSelectedPlan('monthly')}
+              activeOpacity={0.85}
+            >
+              <Text style={[styles.planPrice, selectedPlan === 'monthly' && styles.planPriceSelected]}>
+                $7.99
+              </Text>
+              <Text style={[styles.planLabel, selectedPlan === 'monthly' && styles.planLabelSelected]}>
+                per month
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.planCard, styles.planCardBest, selectedPlan === 'yearly' && styles.planCardSelected]}
+              onPress={() => setSelectedPlan('yearly')}
+              activeOpacity={0.85}
+            >
+              <View style={styles.bestBadge}>
+                <Text style={styles.bestBadgeText}>★ Best Value</Text>
+              </View>
+              <Text style={[styles.planPrice, selectedPlan === 'yearly' && styles.planPriceSelected]}>
+                $59.99
+              </Text>
+              <Text style={[styles.planLabel, selectedPlan === 'yearly' && styles.planLabelSelected]}>
+                per year
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Value stack */}
+          <View style={styles.valueCard}>
+            {[
+              'Daily practice tracking',
+              'Reward system',
+              'Progress tracking',
+              'Motivation tools',
+              'Leaderboard + teammates',
+            ].map(feature => (
+              <View key={feature} style={styles.featureRow}>
+                <Text style={styles.featureCheck}>✓</Text>
+                <Text style={styles.featureText}>{feature}</Text>
+              </View>
+            ))}
           </View>
 
           {/* CTA */}
           <TouchableOpacity
             style={styles.primaryButton}
-            onPress={handleStartTrial}
+            onPress={handleContinue}
             activeOpacity={0.85}
           >
-            <Text style={styles.primaryButtonText}>Keep the streak alive →</Text>
+            <Text style={styles.primaryButtonText}>Continue Progress →</Text>
           </TouchableOpacity>
+
+          <Text style={styles.legal}>Start today, cancel anytime</Text>
 
           <TouchableOpacity
             style={styles.secondaryButton}
@@ -122,11 +141,6 @@ export default function PaywallScreen() {
           >
             <Text style={styles.secondaryButtonText}>Maybe later</Text>
           </TouchableOpacity>
-
-          <Text style={styles.legal}>
-            Free trial starts immediately. Cancel anytime before trial ends
-            to avoid charges. Payment charged to your Apple ID account.
-          </Text>
         </ScrollView>
       </SafeAreaView>
     </View>
@@ -145,155 +159,123 @@ const styles = StyleSheet.create({
     padding: 24,
     paddingBottom: 48,
     alignItems: 'center',
-    gap: 12,
+    gap: 16,
   },
   headline: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: '900',
     color: '#fff',
     textAlign: 'center',
     marginTop: 8,
   },
   subhead: {
-    fontSize: 16,
+    fontSize: 15,
     color: 'rgba(255,255,255,0.7)',
     textAlign: 'center',
+    lineHeight: 22,
   },
-  streakHighlight: {
-    color: '#f97316',
-    fontWeight: '700',
-  },
-  rewardSubtext: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.75)',
-    textAlign: 'center',
-    fontWeight: '600',
+  statsCard: {
     backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    borderRadius: 20,
+    padding: 20,
     width: '100%',
-  },
-  streakVisual: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 16,
-    marginBottom: 4,
-  },
-  streakNumber: {
-    fontSize: 80,
-    fontWeight: '900',
-    color: '#f97316',
-    lineHeight: 90,
-  },
-  streakEmoji: {
-    fontSize: 48,
-  },
-  streakLabel: {
-    fontSize: 18,
-    color: 'rgba(255,255,255,0.6)',
-    marginBottom: 8,
-  },
-  dotsContainer: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 4,
-  },
-  dot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
-  },
-  dotFilled: {
-    backgroundColor: '#22c55e',
-    borderColor: '#22c55e',
-  },
-  dotsLabel: {
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.5)',
-    marginBottom: 8,
-  },
-  offerCard: {
-    backgroundColor: '#fff',
-    borderRadius: 24,
-    padding: 24,
-    width: '100%',
-    marginTop: 8,
-    gap: 8,
-  },
-  offerBadge: {
-    backgroundColor: '#fef3c7',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    alignSelf: 'flex-start',
-  },
-  offerBadgeText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#92400e',
-    letterSpacing: 0.5,
-  },
-  offerTitle: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#0f172a',
-    marginTop: 4,
-  },
-  offerPrice: {
-    fontSize: 16,
-    color: '#475569',
-    fontWeight: '500',
-  },
-  offerCancel: {
-    fontSize: 13,
-    color: '#94a3b8',
-  },
-  offerDivider: {
-    height: 1,
-    backgroundColor: '#f1f5f9',
-    marginVertical: 8,
-  },
-  offerFeature: {
-    flexDirection: 'row',
-    alignItems: 'center',
     gap: 10,
   },
-  offerFeatureIcon: {
+  statRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  statIcon: {
+    fontSize: 18,
+    width: 24,
+  },
+  statText: {
+    fontSize: 15,
+    color: '#fff',
+    fontWeight: '600',
+  },
+  plansRow: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  planCard: {
+    flex: 1,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 16,
+    padding: 20,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'transparent',
+    gap: 4,
+  },
+  planCardBest: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+  },
+  planCardSelected: {
+    borderColor: '#3b82f6',
+    backgroundColor: 'rgba(59,130,246,0.15)',
+  },
+  bestBadge: {
+    backgroundColor: '#fbbf24',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    marginBottom: 4,
+  },
+  bestBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#78350f',
+  },
+  planPrice: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: 'rgba(255,255,255,0.6)',
+  },
+  planPriceSelected: {
+    color: '#fff',
+  },
+  planLabel: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.4)',
+    fontWeight: '500',
+  },
+  planLabelSelected: {
+    color: 'rgba(255,255,255,0.8)',
+  },
+  valueCard: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 20,
+    width: '100%',
+    gap: 10,
+  },
+  featureRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  featureCheck: {
     fontSize: 16,
     color: '#22c55e',
     fontWeight: '700',
+    width: 20,
   },
-  offerFeatureText: {
+  featureText: {
     fontSize: 15,
     color: '#334155',
     fontWeight: '500',
   },
-  warningRow: {
-    backgroundColor: 'rgba(239,68,68,0.12)',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    width: '100%',
-  },
-  warningText: {
-    fontSize: 13,
-    color: '#fca5a5',
-    textAlign: 'center',
-    fontWeight: '600',
-  },
   primaryButton: {
-    backgroundColor: '#f97316',
+    backgroundColor: '#3b82f6',
     borderRadius: 16,
     height: 60,
     justifyContent: 'center',
     alignItems: 'center',
     width: '100%',
-    shadowColor: '#f97316',
+    shadowColor: '#3b82f6',
     shadowOpacity: 0.4,
     shadowRadius: 16,
     shadowOffset: { width: 0, height: 6 },
@@ -304,21 +286,18 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '800',
   },
+  legal: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.4)',
+    textAlign: 'center',
+  },
   secondaryButton: {
-    height: 48,
+    height: 44,
     justifyContent: 'center',
     alignItems: 'center',
   },
   secondaryButtonText: {
     fontSize: 15,
-    color: 'rgba(255,255,255,0.4)',
-  },
-  legal: {
-    fontSize: 11,
-    color: 'rgba(255,255,255,0.25)',
-    textAlign: 'center',
-    lineHeight: 16,
-    paddingHorizontal: 8,
+    color: 'rgba(255,255,255,0.3)',
   },
 })
-
