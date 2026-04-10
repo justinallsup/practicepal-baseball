@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Animated,
+  ScrollView,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
@@ -57,7 +58,11 @@ export default function SetGoalScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <ProgressBar currentStep={5} totalSteps={6} />
-      <View style={styles.content}>
+      <ScrollView 
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.top}>
           <Text style={styles.step}>5 of 6</Text>
           <Text style={styles.title}>✨ Here's how this works</Text>
@@ -112,7 +117,7 @@ export default function SetGoalScreen() {
           </View>
         </Animated.View>
 
-        <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
+        <Animated.View style={[styles.buttonWrapper, { transform: [{ scale: buttonScale }] }]}>
           <TouchableOpacity
             style={styles.button}
             onPress={handleContinue}
@@ -121,7 +126,7 @@ export default function SetGoalScreen() {
             <Text style={styles.buttonText}>Got it</Text>
           </TouchableOpacity>
         </Animated.View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   )
 }
@@ -131,10 +136,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  content: {
+  scroll: {
     flex: 1,
+  },
+  scrollContent: {
     padding: 32,
-    justifyContent: 'space-between',
+    paddingBottom: 48,
+    gap: 32,
   },
   top: {
     gap: 16,
@@ -153,17 +161,17 @@ const styles = StyleSheet.create({
     lineHeight: 40,
   },
   body: {
-    gap: 36,
+    gap: 32,
   },
   goalCard: {
     backgroundColor: '#eff6ff',
     borderRadius: 28,
     borderWidth: 3,
     borderColor: '#bfdbfe',
-    paddingVertical: 32,
+    paddingVertical: 28,
     paddingHorizontal: 24,
     alignItems: 'center',
-    gap: 14,
+    gap: 12,
     shadowColor: '#1e40af',
     shadowOpacity: 0.15,
     shadowRadius: 20,
@@ -171,38 +179,38 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   goalEmoji: {
-    fontSize: 64,
+    fontSize: 56,
   },
   goalTitle: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: '800',
     color: '#1e40af',
     textAlign: 'center',
   },
   progressDisplay: {
     backgroundColor: 'rgba(30, 64, 175, 0.1)',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
     borderRadius: 14,
-    marginTop: 8,
+    marginTop: 6,
   },
   progressText: {
-    fontSize: 19,
+    fontSize: 18,
     fontWeight: '700',
     color: '#1e40af',
   },
   steps: {
-    gap: 22,
+    gap: 20,
   },
   stepRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 16,
+    gap: 14,
   },
   stepIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     backgroundColor: '#1e40af',
     justifyContent: 'center',
     alignItems: 'center',
@@ -213,15 +221,15 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   stepIconText: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '800',
     color: '#fff',
   },
   stepText: {
     flex: 1,
-    fontSize: 17,
+    fontSize: 16,
     color: '#475569',
-    lineHeight: 26,
+    lineHeight: 24,
   },
   stepBold: {
     fontWeight: '700',
@@ -231,24 +239,27 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   progressBarTrack: {
-    height: 12,
+    height: 10,
     backgroundColor: '#e2e8f0',
-    borderRadius: 6,
+    borderRadius: 5,
     overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
     backgroundColor: '#1e40af',
-    borderRadius: 6,
+    borderRadius: 5,
   },
   progressLabels: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   progressLabel: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: '#64748b',
+  },
+  buttonWrapper: {
+    marginTop: 8,
   },
   button: {
     backgroundColor: '#1e40af',
