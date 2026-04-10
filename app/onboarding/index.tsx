@@ -15,8 +15,9 @@ export default function OnboardingHook() {
         <View style={styles.content}>
           <View style={styles.top}>
             <Text style={styles.emoji}>⚾</Text>
-            <Text style={styles.title}>Struggling to get them to practice?</Text>
+            <Text style={styles.title}>Tired of asking them to practice?</Text>
             <Text style={styles.subtitle}>This fixes that.</Text>
+            <Text style={styles.social}>Parents report 2–3x more practice in the first week</Text>
           </View>
           <View style={styles.bottom}>
             <TouchableOpacity
@@ -24,7 +25,7 @@ export default function OnboardingHook() {
               onPress={() => router.push('/onboarding/frequency')}
               activeOpacity={0.85}
             >
-              <Text style={styles.buttonText}>Get Started →</Text>
+              <Text style={styles.buttonText}>Start in 30 seconds ⚾</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -70,6 +71,13 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.85)',
     textAlign: 'center',
     fontWeight: '600',
+  },
+  social: {
+    fontSize: 15,
+    color: 'rgba(255,255,255,0.8)',
+    textAlign: 'center',
+    fontWeight: '500',
+    marginTop: 4,
   },
   bottom: {
     paddingTop: 16,

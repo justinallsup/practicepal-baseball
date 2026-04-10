@@ -46,9 +46,9 @@ export default function PaywallScreen() {
       <SafeAreaView style={styles.safe}>
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           {/* Header */}
-          <Text style={styles.headline}>Keep your player progressing ⚾</Text>
+          <Text style={styles.headline}>They're ready to start — don't lose momentum ⚾</Text>
           <Text style={styles.subhead}>
-            They've already started — don't lose momentum
+            Set their first reward in under 30 seconds
           </Text>
 
           {/* Dynamic stats */}
@@ -129,10 +129,12 @@ export default function PaywallScreen() {
             onPress={handleContinue}
             activeOpacity={0.85}
           >
-            <Text style={styles.primaryButtonText}>Continue Progress →</Text>
+            <Text style={styles.primaryButtonText}>
+              {selectedPlan === 'yearly' ? 'Start Free Trial (Save 37%)' : 'Continue Progress →'}
+            </Text>
           </TouchableOpacity>
 
-          <Text style={styles.legal}>Start today, cancel anytime</Text>
+          <Text style={styles.legal}>Cancel anytime in 2 taps</Text>
 
           <TouchableOpacity
             style={styles.secondaryButton}

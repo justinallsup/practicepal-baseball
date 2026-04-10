@@ -161,6 +161,21 @@ export default function KidModeScreen() {
         {loggedToday && !rewardComplete && (
           <Text style={styles.doneSubtext}>Come back tomorrow to keep the streak going! 🔥</Text>
         )}
+
+        {/* Teammates leaderboard */}
+        <View style={styles.teammatesSection}>
+          <Text style={styles.teammatesTitle}>Teammates training 🏟️</Text>
+          {[
+            { name: 'Jake', practices: 3 },
+            { name: 'Marcus', practices: 2 },
+            { name: 'Tyler', practices: 5 },
+          ].map((tm) => (
+            <View key={tm.name} style={styles.teammateRow}>
+              <Text style={styles.teammateName}>⚾ {tm.name}</Text>
+              <Text style={styles.teammatePractices}>{tm.practices} practices</Text>
+            </View>
+          ))}
+        </View>
       </ScrollView>
     </SafeAreaView>
   )
@@ -368,5 +383,41 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#64748b',
     textAlign: 'center',
+  },
+  teammatesSection: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 20,
+    width: '100%',
+    gap: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
+  },
+  teammatesTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0f172a',
+    marginBottom: 4,
+  },
+  teammateRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+  },
+  teammateName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#334155',
+  },
+  teammatePractices: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1e40af',
   },
 })

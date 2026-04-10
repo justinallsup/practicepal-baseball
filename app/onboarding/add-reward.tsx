@@ -18,8 +18,9 @@ const SUGGESTIONS = ['New Bat', 'Batting Gloves', 'Ice Cream', 'Batting Cages']
 export default function AddReward() {
   const completeOnboarding = useStore(s => s.completeOnboarding)
   const setReward = useStore(s => s.setReward)
+  const onboardingRewardSuggestion = useStore(s => s.onboardingRewardSuggestion)
 
-  const [rewardName, setRewardName] = useState('')
+  const [rewardName, setRewardName] = useState(onboardingRewardSuggestion ?? '')
   const [targetType, setTargetType] = useState<RewardTargetType>('weekly_goal')
   const [streakTarget, setStreakTarget] = useState('5')
 
@@ -29,7 +30,7 @@ export default function AddReward() {
     if (pendingGoalChild) {
       completeOnboarding(pendingGoalChild)
     }
-    router.replace('/(home)')
+    router.replace('/(home)/kid-mode')
   }
 
   const handleSave = () => {
@@ -45,7 +46,7 @@ export default function AddReward() {
       targetType,
       targetValue,
     })
-    router.replace('/(home)')
+    router.replace('/(home)/kid-mode')
   }
 
   return (
