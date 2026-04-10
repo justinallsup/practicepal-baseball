@@ -1,88 +1,89 @@
-import React, { useState } from 'react'
+import React, { useEffect } from 'react'
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import { useStore } from '../../lib/store'
-import { pendingChild } from './add-child'
 
-type GoalOption = {
-  label: string
-  value: 3 | 4 | 5 | 7
-  description: string
-}
+export default function SetGoalScreen() {
+  const onboardingRewardSuggestion = useStore(s => s.onboardingRewardSuggestion)
 
-const GOALS: GoalOption[] = [
-  { label: '3 days/week', value: 3, description: 'Light — great for beginners' },
-  { label: '4 days/week', value: 4, description: 'Moderate — building the habit' },
-  { label: '5 days/week', value: 5, description: 'Committed — serious player' },
-  { label: 'Every day', value: 7, description: 'All-in — elite level grind' },
-]
-
-// Exported so add-reward can access it
-export let pendingGoalChild: { id: string; name: string; avatar: string; goalPerWeek: 3 | 4 | 5 | 7 } | null = null
-
-export default function SetGoal() {
-  const [goal, setGoal] = useState<3 | 4 | 5 | 7>(3)
-  const completeOnboarding = useStore(s => s.completeOnboarding)
-
-  const childName = pendingChild?.name ?? 'Your Player'
-
-  const handleStart = () => {
-    const child = {
-      id: Date.now().toString(),
-      name: childName,
-      avatar: pendingChild?.avatar ?? '⚾',
-      goalPerWeek: goal,
-    }
-    // Store in module-level var so add-reward can use it
-    pendingGoalChild = child
-    // Navigate to add-reward (optional step) instead of completing directly
-    router.push('/onboarding/add-reward')
-  }
+  // Parse reward and practice count
+  const [rewardName, practiceCount] = onboardingRewardSuggestion?.split('|') || ['Practice Goal', '5']
+  const practices = parseInt(practiceCount) || 5
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.title}>How often should</Text>
-        <Text style={styles.name}>{childName}</Text>
-        <Text style={styles.title}>practice?</Text>
-
-        <View style={styles.options}>
-          {GOALS.map(g => (
-            <TouchableOpacity
-              key={g.value}
-              style={[styles.card, goal === g.value && styles.cardSelected]}
-              onPress={() => setGoal(g.value)}
-              activeOpacity={0.8}
-            >
-              <View style={styles.cardRow}>
-                <View style={[styles.radio, goal === g.value && styles.radioSelected]}>
-                  {goal === g.value && <View style={styles.radioDot} />}
-                </View>
-                <View style={styles.cardText}>
-                  <Text style={[styles.cardLabel, goal === g.value && styles.cardLabelSelected]}>
-                    {g.label}
-                  </Text>
-                  <Text style={styles.cardDesc}>{g.description}</Text>
-                </View>
-                {g.value === 7 && (
-                  <Text style={styles.badge}>🔥</Text>
-                )}
-              </View>
-            </TouchableOpacity>
-          ))}
+      <View style={styles.content}>
+        <View style={styles.top}>
+          <Text style={styles.step}>5 of 6</Text>
+          <Text style={styles.title}>Here's how this works</Text>
         </View>
 
-        <TouchableOpacity style={styles.button} onPress={handleStart} activeOpacity={0.85}>
-          <Text style={styles.buttonText}>Start Tracking ⚾</Text>
+        <View style={styles.body}>
+          {/* Goal Display */}
+          <View style={styles.goalCard}>
+            <Text style={styles.goalEmoji}>🎯</Text>
+            <Text style={styles.goalTitle}>{rewardName}</Text>
+            <View style={styles.progressDisplay}>
+              <Text style={styles.progressText}>0 / {practices} practices</Text>
+            </View>
+          </View>
+
+          {/* How it works steps */}
+          <View style={styles.steps}>
+            <View style={styles.stepRow}>
+              <View style={styles.stepIcon}>
+                <Text style={styles.stepIconText}>1</Text>
+              </View>
+              <Text style={styles.stepText}>
+                Complete <Text style={styles.stepBold}>{practices} practices</Text> to earn: <Text style={styles.stepBold}>{rewardName}</Text>
+              </Text>
+            </View>
+
+            <View style={styles.stepRow}>
+              <View style={styles.stepIcon}>
+                <Text style={styles.stepIconText}>2</Text>
+              </View>
+              <Text style={styles.stepText}>
+                Each practice takes about <Text style={styles.stepBold}>10–15 minutes</Text>
+              </Text>
+            </View>
+
+            <View style={styles.stepRow}>
+              <View style={styles.stepIcon}>
+                <Text style={styles.stepIconText}>3</Text>
+              </View>
+              <Text style={styles.stepText}>
+                Stay consistent to <Text style={styles.stepBold}>unlock rewards faster</Text>
+              </Text>
+            </View>
+          </View>
+
+          {/* Visual progress indicator */}
+          <View style={styles.progressBar}>
+            <View style={styles.progressBarTrack}>
+              <View style={[styles.progressBarFill, { width: '0%' }]} />
+            </View>
+            <View style={styles.progressLabels}>
+              <Text style={styles.progressLabel}>Start</Text>
+              <Text style={styles.progressLabel}>{practices} practices</Text>
+            </View>
+          </View>
+        </View>
+
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.push('/onboarding/trial')}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.buttonText}>Got it</Text>
         </TouchableOpacity>
-      </ScrollView>
+      </View>
     </SafeAreaView>
   )
 }
@@ -93,8 +94,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   content: {
-    padding: 24,
-    paddingBottom: 48,
+    flex: 1,
+    padding: 32,
+    justifyContent: 'space-between',
+  },
+  top: {
+    gap: 12,
+  },
+  step: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#94a3b8',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   title: {
     fontSize: 28,
@@ -102,69 +114,93 @@ const styles = StyleSheet.create({
     color: '#0f172a',
     lineHeight: 36,
   },
-  name: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#1e40af',
-    lineHeight: 36,
+  body: {
+    gap: 32,
   },
-  options: {
-    marginTop: 28,
-    marginBottom: 32,
+  goalCard: {
+    backgroundColor: '#eff6ff',
+    borderRadius: 24,
+    borderWidth: 3,
+    borderColor: '#bfdbfe',
+    paddingVertical: 28,
+    paddingHorizontal: 24,
+    alignItems: 'center',
     gap: 12,
   },
-  card: {
-    borderWidth: 2,
-    borderColor: '#e2e8f0',
-    borderRadius: 16,
-    padding: 16,
-    backgroundColor: '#f8fafc',
+  goalEmoji: {
+    fontSize: 56,
   },
-  cardSelected: {
-    borderColor: '#1e40af',
-    backgroundColor: '#eff6ff',
+  goalTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#1e40af',
+    textAlign: 'center',
   },
-  cardRow: {
+  progressDisplay: {
+    backgroundColor: 'rgba(30, 64, 175, 0.1)',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 12,
+    marginTop: 8,
+  },
+  progressText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1e40af',
+  },
+  steps: {
+    gap: 20,
+  },
+  stepRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
+    alignItems: 'flex-start',
+    gap: 16,
   },
-  radio: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 2,
-    borderColor: '#cbd5e1',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  radioSelected: {
-    borderColor: '#1e40af',
-  },
-  radioDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+  stepIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: '#1e40af',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  cardText: {
+  stepIconText: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#fff',
+  },
+  stepText: {
     flex: 1,
+    fontSize: 16,
+    color: '#475569',
+    lineHeight: 24,
   },
-  cardLabel: {
-    fontSize: 17,
+  stepBold: {
     fontWeight: '700',
     color: '#0f172a',
   },
-  cardLabelSelected: {
-    color: '#1e40af',
+  progressBar: {
+    gap: 8,
   },
-  cardDesc: {
+  progressBarTrack: {
+    height: 12,
+    backgroundColor: '#e2e8f0',
+    borderRadius: 6,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: '#1e40af',
+    borderRadius: 6,
+  },
+  progressLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  progressLabel: {
     fontSize: 13,
+    fontWeight: '600',
     color: '#64748b',
-    marginTop: 2,
-  },
-  badge: {
-    fontSize: 22,
   },
   button: {
     backgroundColor: '#1e40af',

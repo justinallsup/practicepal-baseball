@@ -11,46 +11,44 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import { useStore } from '../../lib/store'
 
-const PRIMARY_REWARDS = [
-  { label: 'Ice Cream 🍦', value: 'Ice Cream', subtitle: 'Quick win' },
-  { label: 'Batting Gloves 🧤', value: 'Batting Gloves', subtitle: '1–2 weeks' },
-  { label: 'New Bat 🔥', value: 'New Bat', subtitle: 'Big goal' },
-  { label: 'New Glove / Mitt 🧤', value: 'New Glove', subtitle: 'Big goal' },
+// Structured reward tiers with practice counts
+const QUICK_WINS = [
+  { label: 'Extra Screen Time 🎮', value: 'Extra Screen Time', practices: 1 },
+  { label: 'Stay Up Late ⏰', value: 'Stay Up Late', practices: 2 },
+  { label: 'Pick Dinner 🍕', value: 'Pick Dinner', practices: 3 },
 ]
 
-const SMALL_REWARDS = [
-  { label: 'Candy 🍬', value: 'Candy' },
-  { label: 'Pick dinner 🍕', value: 'Pick dinner' },
-  { label: 'Extra screen time 📱', value: 'Extra screen time' },
-  { label: '$5 allowance 💵', value: '$5 allowance' },
+const MID_TIER = [
+  { label: 'Batting Gloves 🧤', value: 'Batting Gloves', practices: 5 },
+  { label: 'Arm Sleeve 💪', value: 'Arm Sleeve', practices: 7 },
+  { label: 'Baseball Card Pack ⚾', value: 'Baseball Card Pack', practices: 10 },
 ]
 
-const MEDIUM_REWARDS = [
-  { label: 'Arm Sleeve 💪', value: 'Arm Sleeve' },
-  { label: 'Batting Cage Session ⚾', value: 'Batting Cage Session' },
-  { label: 'Team merch 🧢', value: 'Team merch' },
-]
-
-const BIG_REWARDS = [
-  { label: 'Cleats 👟', value: 'Cleats' },
-  { label: 'Catcher\'s Gear 🛡️', value: 'Catcher\'s Gear' },
-  { label: 'Private lesson 🏆', value: 'Private lesson' },
+const BIG_GOALS = [
+  { label: 'New Bat 🔥', value: 'New Bat', practices: 15 },
+  { label: 'New Glove / Mitt 🧤', value: 'New Glove', practices: 20 },
+  { label: 'Cleats 👟', value: 'Cleats', practices: 25 },
+  { label: 'Private Lesson / Cage Session 🎯', value: 'Private Lesson', practices: 30 },
 ]
 
 export default function RewardPickScreen() {
   const setOnboardingRewardSuggestion = useStore(s => s.setOnboardingRewardSuggestion)
-  const [expanded, setExpanded] = useState(false)
   const [showCustom, setShowCustom] = useState(false)
   const [customReward, setCustomReward] = useState('')
+  const [customPractices, setCustomPractices] = useState('5')
+  const [mostPopularShown, setMostPopularShown] = useState(true)
 
-  const handleSelect = (reward: string) => {
-    setOnboardingRewardSuggestion(reward)
-    router.push('/onboarding/trial')
+  const handleSelect = (reward: string, practices: number) => {
+    // Store both reward name and practice count
+    setOnboardingRewardSuggestion(`${reward}|${practices}`)
+    router.push('/onboarding/set-goal')
   }
 
   const handleCustomSubmit = () => {
-    if (customReward.trim()) {
-      handleSelect(customReward.trim())
+    const rewardName = customReward.trim()
+    const practiceCount = parseInt(customPractices) || 5
+    if (rewardName) {
+      handleSelect(rewardName, practiceCount)
     }
   }
 
@@ -58,120 +56,122 @@ export default function RewardPickScreen() {
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.top}>
-          <Text style={styles.step}>4 of 5</Text>
+          <Text style={styles.step}>4 of 6</Text>
           <Text style={styles.title}>Pick a reward that would motivate them</Text>
+          <Text style={styles.subtitle}>Choose a goal based on effort level</Text>
         </View>
 
-        <View style={styles.options}>
-          {/* Primary rewards */}
-          {PRIMARY_REWARDS.map(reward => (
-            <TouchableOpacity
-              key={reward.value}
-              style={styles.primaryPill}
-              onPress={() => handleSelect(reward.value)}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.primaryPillText}>{reward.label}</Text>
-              <Text style={styles.primaryPillSubtitle}>{reward.subtitle}</Text>
-            </TouchableOpacity>
-          ))}
-
-          {/* Expandable section */}
-          <TouchableOpacity
-            style={styles.expandButton}
-            onPress={() => setExpanded(!expanded)}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.expandButtonText}>
-              More reward ideas {expanded ? '▲' : '▼'}
-            </Text>
-          </TouchableOpacity>
-
-          {expanded && (
-            <View style={styles.expandedSection}>
-              {/* Small rewards */}
-              <Text style={styles.categoryLabel}>Small</Text>
-              <View style={styles.categoryGrid}>
-                {SMALL_REWARDS.map(reward => (
-                  <TouchableOpacity
-                    key={reward.value}
-                    style={styles.smallPill}
-                    onPress={() => handleSelect(reward.value)}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.smallPillText}>{reward.label}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              {/* Medium rewards */}
-              <Text style={styles.categoryLabel}>Medium</Text>
-              <View style={styles.categoryGrid}>
-                {MEDIUM_REWARDS.map(reward => (
-                  <TouchableOpacity
-                    key={reward.value}
-                    style={styles.smallPill}
-                    onPress={() => handleSelect(reward.value)}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.smallPillText}>{reward.label}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              {/* Big rewards */}
-              <Text style={styles.categoryLabel}>Big</Text>
-              <View style={styles.categoryGrid}>
-                {BIG_REWARDS.map(reward => (
-                  <TouchableOpacity
-                    key={reward.value}
-                    style={styles.smallPill}
-                    onPress={() => handleSelect(reward.value)}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.smallPillText}>{reward.label}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              {/* Custom option */}
-              {!showCustom ? (
+        <View style={styles.sections}>
+          {/* Quick Wins */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>🟢 Quick Wins</Text>
+            <View style={styles.rewardGrid}>
+              {QUICK_WINS.map((reward, idx) => (
                 <TouchableOpacity
-                  style={styles.customButton}
-                  onPress={() => setShowCustom(true)}
+                  key={reward.value}
+                  style={[
+                    styles.rewardCard,
+                    idx === 0 && mostPopularShown && styles.rewardCardPopular,
+                  ]}
+                  onPress={() => handleSelect(reward.value, reward.practices)}
                   activeOpacity={0.8}
                 >
-                  <Text style={styles.customButtonText}>Create your own reward</Text>
+                  {idx === 0 && mostPopularShown && (
+                    <View style={styles.popularBadge}>
+                      <Text style={styles.popularText}>Most Popular</Text>
+                    </View>
+                  )}
+                  <Text style={styles.rewardLabel}>{reward.label}</Text>
+                  <Text style={styles.rewardPractices}>
+                    Earn in {reward.practices} {reward.practices === 1 ? 'practice' : 'practices'}
+                  </Text>
                 </TouchableOpacity>
-              ) : (
-                <View style={styles.customInputContainer}>
-                  <TextInput
-                    style={styles.customInput}
-                    value={customReward}
-                    onChangeText={setCustomReward}
-                    placeholder="Enter custom reward..."
-                    placeholderTextColor="#94a3b8"
-                    autoFocus
-                    onSubmitEditing={handleCustomSubmit}
-                  />
-                  <TouchableOpacity
-                    style={[styles.customSubmitButton, !customReward.trim() && styles.customSubmitButtonDisabled]}
-                    onPress={handleCustomSubmit}
-                    disabled={!customReward.trim()}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.customSubmitButtonText}>Add</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
+              ))}
+            </View>
+          </View>
+
+          {/* Mid Tier */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>🟡 Mid Tier</Text>
+            <View style={styles.rewardGrid}>
+              {MID_TIER.map(reward => (
+                <TouchableOpacity
+                  key={reward.value}
+                  style={styles.rewardCard}
+                  onPress={() => handleSelect(reward.value, reward.practices)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.rewardLabel}>{reward.label}</Text>
+                  <Text style={styles.rewardPractices}>
+                    Earn in {reward.practices} practices
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
+          {/* Big Goals */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>🔴 Big Goals</Text>
+            <View style={styles.rewardGrid}>
+              {BIG_GOALS.map(reward => (
+                <TouchableOpacity
+                  key={reward.value}
+                  style={styles.rewardCard}
+                  onPress={() => handleSelect(reward.value, reward.practices)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.rewardLabel}>{reward.label}</Text>
+                  <Text style={styles.rewardPractices}>
+                    Earn in {reward.practices} practices
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
+          {/* Custom Reward */}
+          {!showCustom ? (
+            <TouchableOpacity
+              style={styles.customButton}
+              onPress={() => setShowCustom(true)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.customButtonText}>+ Create Custom Reward</Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.customContainer}>
+              <Text style={styles.customLabel}>Custom Reward</Text>
+              <TextInput
+                style={styles.customInput}
+                value={customReward}
+                onChangeText={setCustomReward}
+                placeholder="Enter reward name..."
+                placeholderTextColor="#94a3b8"
+                autoFocus
+              />
+              <View style={styles.practicesInputRow}>
+                <Text style={styles.practicesLabel}>Practices needed:</Text>
+                <TextInput
+                  style={styles.practicesInput}
+                  value={customPractices}
+                  onChangeText={setCustomPractices}
+                  placeholder="5"
+                  placeholderTextColor="#94a3b8"
+                  keyboardType="number-pad"
+                  maxLength={3}
+                />
+              </View>
+              <TouchableOpacity
+                style={[styles.customSubmitButton, !customReward.trim() && styles.customSubmitButtonDisabled]}
+                onPress={handleCustomSubmit}
+                disabled={!customReward.trim()}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.customSubmitButtonText}>Add Reward</Text>
+              </TouchableOpacity>
             </View>
           )}
-
-          {/* Helper text */}
-          <View style={styles.helperSection}>
-            <Text style={styles.helperText}>💡 Tip: Start with a small reward to build momentum</Text>
-            <Text style={styles.helperText}>Most parents set 2–3 rewards at once</Text>
-          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -186,10 +186,10 @@ const styles = StyleSheet.create({
   content: {
     padding: 32,
     paddingBottom: 48,
-    gap: 32,
   },
   top: {
-    gap: 12,
+    gap: 8,
+    marginBottom: 32,
   },
   step: {
     fontSize: 13,
@@ -204,130 +204,138 @@ const styles = StyleSheet.create({
     color: '#0f172a',
     lineHeight: 36,
   },
-  options: {
-    gap: 14,
+  subtitle: {
+    fontSize: 15,
+    color: '#64748b',
+    marginTop: 4,
   },
-  primaryPill: {
+  sections: {
+    gap: 28,
+  },
+  section: {
+    gap: 12,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#0f172a',
+  },
+  rewardGrid: {
+    gap: 12,
+  },
+  rewardCard: {
+    backgroundColor: '#f8fafc',
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#e2e8f0',
+    paddingHorizontal: 20,
+    paddingVertical: 18,
+    gap: 6,
+    position: 'relative',
+  },
+  rewardCardPopular: {
+    backgroundColor: '#fef3c7',
+    borderColor: '#fbbf24',
+    borderWidth: 3,
+  },
+  popularBadge: {
+    position: 'absolute',
+    top: -10,
+    right: 12,
+    backgroundColor: '#fbbf24',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  popularText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#78350f',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  rewardLabel: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#0f172a',
+  },
+  rewardPractices: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1e40af',
+  },
+  customButton: {
     backgroundColor: '#eff6ff',
     borderRadius: 16,
     borderWidth: 2,
     borderColor: '#bfdbfe',
-    paddingHorizontal: 24,
-    paddingVertical: 20,
-    alignItems: 'center',
-    gap: 4,
-  },
-  primaryPillText: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1e40af',
-  },
-  primaryPillSubtitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#64748b',
-  },
-  expandButton: {
-    backgroundColor: '#f8fafc',
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: '#e2e8f0',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  expandButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#475569',
-  },
-  expandedSection: {
-    gap: 16,
-    marginTop: 8,
-  },
-  categoryLabel: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#0f172a',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginTop: 8,
-  },
-  categoryGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  smallPill: {
-    backgroundColor: '#f1f5f9',
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: '#cbd5e1',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  smallPillText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#334155',
-  },
-  customButton: {
-    backgroundColor: '#fef3c7',
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: '#fbbf24',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
+    paddingVertical: 18,
     alignItems: 'center',
     marginTop: 8,
   },
   customButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#92400e',
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1e40af',
   },
-  customInputContainer: {
-    flexDirection: 'row',
-    gap: 10,
+  customContainer: {
+    backgroundColor: '#f8fafc',
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#e2e8f0',
+    padding: 20,
+    gap: 14,
     marginTop: 8,
   },
+  customLabel: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#0f172a',
+  },
   customInput: {
-    flex: 1,
     borderWidth: 1.5,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 16,
+    color: '#0f172a',
+    backgroundColor: '#fff',
+  },
+  practicesInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  practicesLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#475569',
+  },
+  practicesInput: {
+    borderWidth: 1.5,
+    borderColor: '#cbd5e1',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    fontSize: 15,
+    fontSize: 16,
     color: '#0f172a',
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#fff',
+    width: 80,
+    textAlign: 'center',
   },
   customSubmitButton: {
     backgroundColor: '#1e40af',
     borderRadius: 12,
-    paddingHorizontal: 20,
-    justifyContent: 'center',
+    paddingVertical: 16,
+    alignItems: 'center',
   },
   customSubmitButtonDisabled: {
     backgroundColor: '#cbd5e1',
   },
   customSubmitButtonText: {
     color: '#fff',
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
-  },
-  helperSection: {
-    gap: 6,
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
-  },
-  helperText: {
-    fontSize: 13,
-    color: '#64748b',
-    textAlign: 'center',
-    lineHeight: 18,
   },
 })

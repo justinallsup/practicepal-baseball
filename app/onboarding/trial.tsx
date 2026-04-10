@@ -41,7 +41,7 @@ export default function TrialScreen() {
     <View style={styles.bg}>
       <SafeAreaView style={styles.safe}>
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-          <Text style={styles.step}>5 of 5</Text>
+          <Text style={styles.step}>6 of 6</Text>
           <Text style={styles.title}>Start your 3-day free trial</Text>
           <Text style={styles.subtitle}>Most parents see results in the first week</Text>
 
