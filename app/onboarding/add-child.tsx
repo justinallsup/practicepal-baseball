@@ -25,7 +25,7 @@ export default function AddChild() {
 
   const handleContinue = () => {
     pendingChild = { name: name.trim(), avatar }
-    router.push('/onboarding/set-goal')
+    router.push('/onboarding/add-reward')
   }
 
   return (

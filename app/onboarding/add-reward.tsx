@@ -9,7 +9,7 @@ import {
 } from 'react-native'
 import { router } from 'expo-router'
 import { useStore } from '../../lib/store'
-import { pendingGoalChild } from './set-goal'
+import { pendingChild } from './add-child'
 
 type EarnMethod = 'weekly_goal' | 'streak_goal'
 type EffortLevel = 'easy' | 'medium' | 'hard'
@@ -51,29 +51,44 @@ export default function AddRewardScreen() {
     <Text key={i} style={styles.ball}>⚾</Text>
   ))
 
-  const childName = pendingGoalChild?.name ?? 'Your Player'
+  const childName = pendingChild?.name ?? 'Your Player'
 
   const handleSave = () => {
     // Complete onboarding (saves child to store)
-    if (pendingGoalChild) {
-      completeOnboarding(pendingGoalChild)
+    if (pendingChild) {
+      completeOnboarding({
+        id: Date.now().toString(),
+        familyId: 'demo-family',
+        name: pendingChild.name,
+        avatar: pendingChild.avatar,
+        goalPerWeek: 3,
+      })
     }
-    // Save the reward
-    const cleanName = rewardName.replace(/[🍦🔥🧤🍬🍕📱💪👟🏆🎯]/g, '').trim()
+    // Save the reward with parsed practice count
+    const [rewardNameOnly, practiceCount] = onboardingRewardSuggestion?.split('|') || [rewardName, '5']
+    const targetValue = parseInt(practiceCount) || EFFORT_MAP[effort].practices
+    const cleanName = (rewardNameOnly || rewardName).replace(/[🍦🔥🧤🍬🍕📱💪👟🏆🎯⚾]/g, '').trim()
+    
     setReward({
       childName,
       rewardName: cleanName || rewardName,
       targetType: earnMethod,
       targetValue,
     })
-    router.replace('/(home)/kid-mode')
+    router.replace('/(home)')
   }
 
   const handleSkip = () => {
-    if (pendingGoalChild) {
-      completeOnboarding(pendingGoalChild)
+    if (pendingChild) {
+      completeOnboarding({
+        id: Date.now().toString(),
+        familyId: 'demo-family',
+        name: pendingChild.name,
+        avatar: pendingChild.avatar,
+        goalPerWeek: 3,
+      })
     }
-    router.replace('/(home)/kid-mode')
+    router.replace('/(home)')
   }
 
   return (
