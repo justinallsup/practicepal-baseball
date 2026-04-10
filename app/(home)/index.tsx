@@ -16,6 +16,24 @@ import StreakBadge from '../../components/StreakBadge'
 import WeeklyTracker from '../../components/WeeklyTracker'
 import PracticeTypeSelector from '../../components/PracticeTypeSelector'
 import RewardProgress from '../../components/RewardProgress'
+import {
+  requestNotificationPermission,
+  scheduleStreakReminder,
+} from '../../lib/notifications'
+
+type Feeling = 'easy' | 'solid' | 'hard'
+
+const FEELING_OPTIONS: { value: Feeling; emoji: string; label: string }[] = [
+  { value: 'easy', emoji: '😐', label: 'Easy' },
+  { value: 'solid', emoji: '💪', label: 'Solid' },
+  { value: 'hard', emoji: '🔥', label: 'Hard' },
+]
+
+const FEELING_MESSAGES: Record<Feeling, string> = {
+  easy: 'Good session — keep building ⚾',
+  solid: 'Nice consistent effort 👊',
+  hard: 'Great work pushing today 💪',
+}
 
 export default function HomeScreen() {
   const child = useStore(s => s.child)
@@ -30,11 +48,18 @@ export default function HomeScreen() {
   const isRewardEarned = useStore(s => s.isRewardEarned)
   const markRewardEarned = useStore(s => s.markRewardEarned)
   const clearReward = useStore(s => s.clearReward)
+  const updateLastLogFeeling = useStore(s => s.updateLastLogFeeling)
+  const notificationsEnabled = useStore(s => s.notificationsEnabled)
+  const hasAskedNotificationPermission = useStore(s => s.hasAskedNotificationPermission)
+  const setNotificationsEnabled = useStore(s => s.setNotificationsEnabled)
+  const setHasAskedNotificationPermission = useStore(s => s.setHasAskedNotificationPermission)
 
   const [showModal, setShowModal] = useState(false)
   const [selectedTypes, setSelectedTypes] = useState<PracticeType[]>([])
   const [loggedThisSession, setLoggedThisSession] = useState(false)
   const [showRewardModal, setShowRewardModal] = useState(false)
+  const [selectedFeeling, setSelectedFeeling] = useState<Feeling | null>(null)
+  const [showNotifPrompt, setShowNotifPrompt] = useState(false)
 
   // Animation refs
   const successScale = useRef(new Animated.Value(0)).current
@@ -67,6 +92,7 @@ export default function HomeScreen() {
     const result = logPractice(selectedTypes)
     if (!result.alreadyLoggedToday) {
       setLoggedThisSession(true)
+      setSelectedFeeling(null)
 
       // Check if reward was just earned
       if (reward && !isRewardEarned()) {
@@ -75,6 +101,18 @@ export default function HomeScreen() {
           markRewardEarned()
           setShowRewardModal(true)
         }
+      }
+
+      // Re-schedule streak reminder if notifications are enabled
+      if (notificationsEnabled) {
+        const progress = getRewardProgress()
+        scheduleStreakReminder({
+          rewardName: reward?.rewardName,
+          remainingPractices: reward
+            ? Math.max(0, reward.targetValue - progress)
+            : undefined,
+          currentStreak: getCurrentStreak(),
+        }).catch(() => {})
       }
 
       // Animate success
@@ -91,6 +129,15 @@ export default function HomeScreen() {
           useNativeDriver: true,
         }),
       ]).start(() => {
+        // After success animation, check if we should show notification prompt
+        // Show after 2nd log and haven't asked yet
+        const currentLogs = useStore.getState().logs
+        if (currentLogs.length === 2 && !hasAskedNotificationPermission) {
+          setTimeout(() => {
+            setShowNotifPrompt(true)
+          }, 600)
+        }
+
         // After 2s, check if we should navigate to paywall
         setTimeout(() => {
           const show = shouldShowPaywall()
@@ -100,10 +147,61 @@ export default function HomeScreen() {
         }, 1800)
       })
     }
-  }, [selectedTypes, logPractice, shouldShowPaywall, reward, isRewardEarned, getRewardProgress, markRewardEarned])
+  }, [
+    selectedTypes,
+    logPractice,
+    shouldShowPaywall,
+    reward,
+    isRewardEarned,
+    getRewardProgress,
+    markRewardEarned,
+    notificationsEnabled,
+    getCurrentStreak,
+    hasAskedNotificationPermission,
+  ])
+
+  const handleFeelingSelect = useCallback(
+    (feeling: Feeling) => {
+      setSelectedFeeling(feeling)
+      updateLastLogFeeling(feeling)
+    },
+    [updateLastLogFeeling]
+  )
+
+  const handleNotifYes = useCallback(async () => {
+    setShowNotifPrompt(false)
+    setHasAskedNotificationPermission(true)
+    const granted = await requestNotificationPermission()
+    if (granted) {
+      setNotificationsEnabled(true)
+      const progress = getRewardProgress()
+      scheduleStreakReminder({
+        rewardName: reward?.rewardName,
+        remainingPractices: reward
+          ? Math.max(0, reward.targetValue - progress)
+          : undefined,
+        currentStreak: getCurrentStreak(),
+      }).catch(() => {})
+    }
+  }, [
+    setHasAskedNotificationPermission,
+    setNotificationsEnabled,
+    getRewardProgress,
+    reward,
+    getCurrentStreak,
+  ])
+
+  const handleNotifNo = useCallback(() => {
+    setShowNotifPrompt(false)
+    setHasAskedNotificationPermission(true)
+  }, [setHasAskedNotificationPermission])
 
   const newStreak = getCurrentStreak()
   const rewardEarned = isRewardEarned()
+  const rewardProgress = getRewardProgress()
+  const remainingPractices = reward
+    ? Math.max(0, reward.targetValue - rewardProgress)
+    : null
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -178,6 +276,48 @@ export default function HomeScreen() {
                 🎉 ⭐ 🔥 ⭐ 🎉
               </Animated.Text>
             )}
+
+            {/* Feeling selector — shown only when just logged and no feeling picked yet */}
+            {loggedThisSession && selectedFeeling === null && (
+              <View style={styles.feelingSection}>
+                <Text style={styles.feelingTitle}>How was practice today?</Text>
+                <View style={styles.feelingRow}>
+                  {FEELING_OPTIONS.map(opt => (
+                    <TouchableOpacity
+                      key={opt.value}
+                      style={styles.feelingBtn}
+                      onPress={() => handleFeelingSelect(opt.value)}
+                      activeOpacity={0.75}
+                    >
+                      <Text style={styles.feelingEmoji}>{opt.emoji}</Text>
+                      <Text style={styles.feelingLabel}>{opt.label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {/* Feeling confirmation message */}
+            {loggedThisSession && selectedFeeling !== null && (
+              <View style={styles.feelingConfirm}>
+                <Text style={styles.feelingConfirmText}>{FEELING_MESSAGES[selectedFeeling]}</Text>
+              </View>
+            )}
+
+            {/* Next step section */}
+            <View style={styles.nextStepSection}>
+              <View style={styles.nextStepDivider} />
+              <Text style={styles.nextStepHeading}>Next step:</Text>
+              <Text style={styles.nextStepText}>
+                Log practice again tomorrow to keep the streak alive 🔥
+              </Text>
+              {reward && !rewardEarned && remainingPractices !== null && remainingPractices > 0 && (
+                <Text style={styles.nextStepReward}>
+                  {remainingPractices} more practice{remainingPractices === 1 ? '' : 's'} to earn{' '}
+                  {reward.rewardName} 🎯
+                </Text>
+              )}
+            </View>
           </Animated.View>
         ) : (
           /* Log button state */
@@ -248,6 +388,33 @@ export default function HomeScreen() {
               activeOpacity={0.85}
             >
               <Text style={styles.rewardModalBtnText}>Set New Reward</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Notification permission soft prompt */}
+      <Modal visible={showNotifPrompt} transparent animationType="fade">
+        <View style={styles.notifModalOverlay}>
+          <View style={styles.notifModalCard}>
+            <Text style={styles.notifModalEmoji}>🔔</Text>
+            <Text style={styles.notifModalTitle}>Want a reminder so you don't break your streak?</Text>
+            <Text style={styles.notifModalSub}>
+              We'll ping you at 6pm so practice stays on track.
+            </Text>
+            <TouchableOpacity
+              style={styles.notifYesBtn}
+              onPress={handleNotifYes}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.notifYesBtnText}>Yes, remind me</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.notifNoBtn}
+              onPress={handleNotifNo}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.notifNoBtnText}>No thanks</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -328,6 +495,7 @@ const styles = StyleSheet.create({
   successContainer: {
     alignItems: 'center',
     gap: 12,
+    width: '100%',
   },
   successEmoji: {
     fontSize: 72,
@@ -367,6 +535,88 @@ const styles = StyleSheet.create({
     fontSize: 28,
     marginTop: 8,
     letterSpacing: 4,
+  },
+  // Feeling selector
+  feelingSection: {
+    marginTop: 16,
+    alignItems: 'center',
+    gap: 12,
+    width: '100%',
+  },
+  feelingTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#475569',
+    textAlign: 'center',
+  },
+  feelingRow: {
+    flexDirection: 'row',
+    gap: 10,
+    justifyContent: 'center',
+  },
+  feelingBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#f1f5f9',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  feelingEmoji: {
+    fontSize: 18,
+  },
+  feelingLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#334155',
+  },
+  feelingConfirm: {
+    backgroundColor: '#eff6ff',
+    borderRadius: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    marginTop: 4,
+  },
+  feelingConfirmText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1e40af',
+    textAlign: 'center',
+  },
+  // Next step section
+  nextStepSection: {
+    alignItems: 'center',
+    gap: 6,
+    width: '100%',
+    marginTop: 8,
+    paddingHorizontal: 8,
+  },
+  nextStepDivider: {
+    width: '80%',
+    height: 1,
+    backgroundColor: '#e2e8f0',
+    marginBottom: 8,
+  },
+  nextStepHeading: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#94a3b8',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  nextStepText: {
+    fontSize: 14,
+    color: '#475569',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  nextStepReward: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1e40af',
+    textAlign: 'center',
+    marginTop: 2,
   },
   lockedContainer: {
     alignItems: 'center',
@@ -509,5 +759,67 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '700',
+  },
+  // Notification soft prompt modal
+  notifModalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    padding: 32,
+  },
+  notifModalCard: {
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    padding: 32,
+    alignItems: 'center',
+    gap: 10,
+    width: '100%',
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 12,
+  },
+  notifModalEmoji: {
+    fontSize: 48,
+    marginBottom: 4,
+  },
+  notifModalTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#0f172a',
+    textAlign: 'center',
+    lineHeight: 26,
+  },
+  notifModalSub: {
+    fontSize: 14,
+    color: '#64748b',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 4,
+  },
+  notifYesBtn: {
+    backgroundColor: '#1e40af',
+    borderRadius: 14,
+    paddingHorizontal: 28,
+    paddingVertical: 14,
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  notifYesBtnText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  notifNoBtn: {
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  notifNoBtnText: {
+    fontSize: 15,
+    color: '#94a3b8',
   },
 })

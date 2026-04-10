@@ -14,7 +14,10 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.practicepal.baseball",
-      "buildNumber": "1"
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSUserNotificationUsageDescription": "We'll remind you to log practice and keep your streak alive."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -24,7 +27,14 @@
       "package": "com.practicepal.baseball"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "expo-notifications",
+        {
+          "color": "#1e40af",
+          "sounds": []
+        }
+      ]
     ],
     "scheme": "practicepal",
     "extra": {

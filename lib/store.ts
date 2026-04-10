@@ -29,6 +29,7 @@ export interface PracticeLog {
   date: string // YYYY-MM-DD
   types: PracticeType[]
   loggedAt: string // ISO
+  feeling?: 'easy' | 'solid' | 'hard' | null
 }
 
 export interface AppState {
@@ -49,9 +50,15 @@ export interface AppState {
   // Reward
   reward: Reward | null
 
+  // Notifications
+  notificationsEnabled: boolean
+  notificationHour: number
+  hasAskedNotificationPermission: boolean
+
   // Actions
   completeOnboarding: (child: Child) => void
   logPractice: (types: PracticeType[]) => { alreadyLoggedToday: boolean }
+  updateLastLogFeeling: (feeling: 'easy' | 'solid' | 'hard') => void
   getCurrentStreak: () => number
   getBestStreak: () => number
   getWeekLogs: () => PracticeLog[]
@@ -65,6 +72,8 @@ export interface AppState {
   markRewardEarned: () => void
   getRewardProgress: () => number
   isRewardEarned: () => boolean
+  setNotificationsEnabled: (enabled: boolean) => void
+  setHasAskedNotificationPermission: (asked: boolean) => void
 }
 
 export const useStore = create<AppState>()(
@@ -77,6 +86,9 @@ export const useStore = create<AppState>()(
       trialStartDate: null,
       totalLogsCount: 0,
       reward: null,
+      notificationsEnabled: false,
+      notificationHour: 18,
+      hasAskedNotificationPermission: false,
 
       completeOnboarding: (child: Child) => {
         set({ onboardingComplete: true, child })
@@ -96,12 +108,21 @@ export const useStore = create<AppState>()(
           date: today,
           types,
           loggedAt: new Date().toISOString(),
+          feeling: null,
         }
         set(s => ({
           logs: [...s.logs, newLog],
           totalLogsCount: s.totalLogsCount + 1,
         }))
         return { alreadyLoggedToday: false }
+      },
+
+      updateLastLogFeeling: (feeling: 'easy' | 'solid' | 'hard') => {
+        const { logs } = get()
+        if (logs.length === 0) return
+        const updated = [...logs]
+        updated[updated.length - 1] = { ...updated[updated.length - 1], feeling }
+        set({ logs: updated })
       },
 
       hasLoggedToday: () => {
@@ -187,6 +208,9 @@ export const useStore = create<AppState>()(
           trialStartDate: null,
           totalLogsCount: 0,
           reward: null,
+          notificationsEnabled: false,
+          notificationHour: 18,
+          hasAskedNotificationPermission: false,
         })
       },
 
@@ -226,6 +250,14 @@ export const useStore = create<AppState>()(
       isRewardEarned: () => {
         const { reward } = get()
         return reward?.earnedAt !== null && reward?.earnedAt !== undefined
+      },
+
+      setNotificationsEnabled: (enabled: boolean) => {
+        set({ notificationsEnabled: enabled })
+      },
+
+      setHasAskedNotificationPermission: (asked: boolean) => {
+        set({ hasAskedNotificationPermission: asked })
       },
     }),
     {
