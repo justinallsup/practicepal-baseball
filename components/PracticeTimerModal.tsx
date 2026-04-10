@@ -37,6 +37,16 @@ export function PracticeTimerModal({ visible, onComplete, onCancel }: PracticeTi
     return `${mins}:${secs.toString().padStart(2, '0')}`
   }
 
+  // Reset when modal becomes visible
+  useEffect(() => {
+    if (visible) {
+      setPhase('setup')
+      setElapsedSeconds(0)
+      setSelectedChallenge(undefined)
+      setShowEncouragement(false)
+    }
+  }, [visible])
+
   useEffect(() => {
     if (phase === 'active') {
       timerRef.current = setInterval(() => {
