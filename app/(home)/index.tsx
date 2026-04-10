@@ -7,6 +7,7 @@ import {
   Modal,
   Animated,
   Platform,
+  ScrollView,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
@@ -248,34 +249,41 @@ export default function HomeScreen() {
           </View>
         ) : loggedToday || loggedThisSession ? (
           /* Success state */
-          <Animated.View
-            style={[
-              styles.successContainer,
-              { transform: [{ scale: loggedThisSession ? successScale : new Animated.Value(1) }] },
-            ]}
+          <ScrollView
+            style={{ flex: 1, width: '100%' }}
+            contentContainerStyle={styles.successScroll}
+            showsVerticalScrollIndicator={false}
+            bounces={true}
           >
-            <Text style={styles.successEmoji}>✅</Text>
-            <Text style={styles.successTitle}>Practice logged! 🎉</Text>
-            <Text style={styles.successStreak}>
-              {child?.name ?? 'Player'} is on a {newStreak}-day streak 🔥
-            </Text>
-            {newStreak >= 2 && (
-              <View style={styles.motivationBanner}>
-                <Text style={styles.motivationText}>
-                  {newStreak} days in a row — keep it going!
-                </Text>
-              </View>
-            )}
-            {loggedThisSession && reward && !rewardEarned && (
-              <Text style={styles.rewardNudge}>
-                1 step closer to {reward.rewardName} 🎯
+            <Animated.View
+              style={[
+                styles.successContainer,
+                { transform: [{ scale: loggedThisSession ? successScale : new Animated.Value(1) }] },
+              ]}
+            >
+              <Text style={styles.successEmoji}>✅</Text>
+              <Text style={styles.successTitle}>Practice logged! 🎉</Text>
+              <Text style={styles.successStreak}>
+                {child?.name ?? 'Player'} is on a {newStreak}-day streak 🔥
               </Text>
-            )}
-            {loggedThisSession && (
-              <Animated.Text style={[styles.confetti, { opacity: confettiOpacity }]}>
-                🎉 ⭐ 🔥 ⭐ 🎉
-              </Animated.Text>
-            )}
+              {newStreak >= 2 && (
+                <View style={styles.motivationBanner}>
+                  <Text style={styles.motivationText}>
+                    {newStreak} days in a row — keep it going!
+                  </Text>
+                </View>
+              )}
+              {loggedThisSession && reward && !rewardEarned && (
+                <Text style={styles.rewardNudge}>
+                  1 step closer to {reward.rewardName} 🎯
+                </Text>
+              )}
+              {loggedThisSession && (
+                <Animated.Text style={[styles.confetti, { opacity: confettiOpacity }]}>
+                  🎉 ⭐ 🔥 ⭐ 🎉
+                </Animated.Text>
+              )}
+            </Animated.View>
 
             {/* Feeling selector — shown only when just logged and no feeling picked yet */}
             {loggedThisSession && selectedFeeling === null && (
@@ -318,7 +326,7 @@ export default function HomeScreen() {
                 </Text>
               )}
             </View>
-          </Animated.View>
+          </ScrollView>
         ) : (
           /* Log button state */
           <View style={styles.logContainer}>
@@ -457,9 +465,10 @@ const styles = StyleSheet.create({
   },
   mainArea: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: 0,
+    width: '100%',
   },
   logContainer: {
     alignItems: 'center',
@@ -492,34 +501,41 @@ const styles = StyleSheet.create({
     color: '#94a3b8',
     textAlign: 'center',
   },
+  successScroll: {
+    flexGrow: 1,
+    alignItems: 'center',
+    paddingBottom: 32,
+  },
   successContainer: {
     alignItems: 'center',
-    gap: 12,
+    gap: 6,
+    paddingTop: 16,
+    paddingHorizontal: 20,
     width: '100%',
   },
   successEmoji: {
-    fontSize: 72,
+    fontSize: 52,
   },
   successTitle: {
-    fontSize: 26,
+    fontSize: 22,
     fontWeight: '800',
     color: '#0f172a',
     textAlign: 'center',
   },
   successStreak: {
-    fontSize: 17,
+    fontSize: 15,
     color: '#64748b',
     textAlign: 'center',
   },
   motivationBanner: {
     backgroundColor: '#fef3c7',
-    borderRadius: 14,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    marginTop: 8,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 7,
+    marginTop: 4,
   },
   motivationText: {
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: '600',
     color: '#92400e',
     textAlign: 'center',
@@ -532,16 +548,17 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   confetti: {
-    fontSize: 28,
-    marginTop: 8,
-    letterSpacing: 4,
+    fontSize: 22,
+    marginTop: 4,
+    letterSpacing: 3,
   },
   // Feeling selector
   feelingSection: {
-    marginTop: 16,
+    marginTop: 10,
     alignItems: 'center',
-    gap: 12,
+    gap: 8,
     width: '100%',
+    paddingHorizontal: 20,
   },
   feelingTitle: {
     fontSize: 15,
@@ -551,7 +568,7 @@ const styles = StyleSheet.create({
   },
   feelingRow: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 8,
     justifyContent: 'center',
   },
   feelingBtn: {
@@ -561,7 +578,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f1f5f9',
     borderRadius: 12,
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 8,
   },
   feelingEmoji: {
     fontSize: 18,
@@ -589,8 +606,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     width: '100%',
-    marginTop: 8,
-    paddingHorizontal: 8,
+    marginTop: 10,
+    paddingHorizontal: 20,
   },
   nextStepDivider: {
     width: '80%',
@@ -606,10 +623,10 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   nextStepText: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#475569',
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 18,
   },
   nextStepReward: {
     fontSize: 14,
