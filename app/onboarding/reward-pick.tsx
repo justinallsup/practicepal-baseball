@@ -10,8 +10,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import { useStore } from '../../lib/store'
+import { ProgressBar } from '../../components/ProgressBar'
 
-// Structured reward tiers with practice counts
 const QUICK_WINS = [
   { label: 'Extra Screen Time 🎮', value: 'Extra Screen Time', practices: 1 },
   { label: 'Stay Up Late ⏰', value: 'Stay Up Late', practices: 2 },
@@ -36,10 +36,8 @@ export default function RewardPickScreen() {
   const [showCustom, setShowCustom] = useState(false)
   const [customReward, setCustomReward] = useState('')
   const [customPractices, setCustomPractices] = useState('5')
-  const [mostPopularShown, setMostPopularShown] = useState(true)
 
   const handleSelect = (reward: string, practices: number) => {
-    // Store both reward name and practice count
     setOnboardingRewardSuggestion(`${reward}|${practices}`)
     router.push('/onboarding/set-goal')
   }
@@ -54,15 +52,15 @@ export default function RewardPickScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
+      <ProgressBar currentStep={4} totalSteps={6} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.top}>
           <Text style={styles.step}>4 of 6</Text>
-          <Text style={styles.title}>Pick a reward that would motivate them</Text>
+          <Text style={styles.title}>🎁 Pick a reward that would motivate them</Text>
           <Text style={styles.subtitle}>Choose a goal based on effort level</Text>
         </View>
 
         <View style={styles.sections}>
-          {/* Quick Wins */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>🟢 Quick Wins</Text>
             <View style={styles.rewardGrid}>
@@ -71,12 +69,12 @@ export default function RewardPickScreen() {
                   key={reward.value}
                   style={[
                     styles.rewardCard,
-                    idx === 0 && mostPopularShown && styles.rewardCardPopular,
+                    idx === 0 && styles.rewardCardPopular,
                   ]}
                   onPress={() => handleSelect(reward.value, reward.practices)}
-                  activeOpacity={0.8}
+                  activeOpacity={1}
                 >
-                  {idx === 0 && mostPopularShown && (
+                  {idx === 0 && (
                     <View style={styles.popularBadge}>
                       <Text style={styles.popularText}>Most Popular</Text>
                     </View>
@@ -90,7 +88,6 @@ export default function RewardPickScreen() {
             </View>
           </View>
 
-          {/* Mid Tier */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>🟡 Mid Tier</Text>
             <View style={styles.rewardGrid}>
@@ -99,7 +96,7 @@ export default function RewardPickScreen() {
                   key={reward.value}
                   style={styles.rewardCard}
                   onPress={() => handleSelect(reward.value, reward.practices)}
-                  activeOpacity={0.8}
+                  activeOpacity={1}
                 >
                   <Text style={styles.rewardLabel}>{reward.label}</Text>
                   <Text style={styles.rewardPractices}>
@@ -110,7 +107,6 @@ export default function RewardPickScreen() {
             </View>
           </View>
 
-          {/* Big Goals */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>🔴 Big Goals</Text>
             <View style={styles.rewardGrid}>
@@ -119,7 +115,7 @@ export default function RewardPickScreen() {
                   key={reward.value}
                   style={styles.rewardCard}
                   onPress={() => handleSelect(reward.value, reward.practices)}
-                  activeOpacity={0.8}
+                  activeOpacity={1}
                 >
                   <Text style={styles.rewardLabel}>{reward.label}</Text>
                   <Text style={styles.rewardPractices}>
@@ -130,12 +126,11 @@ export default function RewardPickScreen() {
             </View>
           </View>
 
-          {/* Custom Reward */}
           {!showCustom ? (
             <TouchableOpacity
               style={styles.customButton}
               onPress={() => setShowCustom(true)}
-              activeOpacity={0.8}
+              activeOpacity={1}
             >
               <Text style={styles.customButtonText}>+ Create Custom Reward</Text>
             </TouchableOpacity>
@@ -166,7 +161,7 @@ export default function RewardPickScreen() {
                 style={[styles.customSubmitButton, !customReward.trim() && styles.customSubmitButtonDisabled]}
                 onPress={handleCustomSubmit}
                 disabled={!customReward.trim()}
-                activeOpacity={0.8}
+                activeOpacity={1}
               >
                 <Text style={styles.customSubmitButtonText}>Add Reward</Text>
               </TouchableOpacity>
@@ -188,7 +183,7 @@ const styles = StyleSheet.create({
     paddingBottom: 48,
   },
   top: {
-    gap: 8,
+    gap: 12,
     marginBottom: 32,
   },
   step: {
@@ -199,44 +194,55 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: '800',
     color: '#0f172a',
-    lineHeight: 36,
+    lineHeight: 40,
   },
   subtitle: {
-    fontSize: 15,
+    fontSize: 16,
     color: '#64748b',
     marginTop: 4,
+    fontWeight: '500',
   },
   sections: {
-    gap: 28,
+    gap: 32,
   },
   section: {
-    gap: 12,
+    gap: 14,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '700',
     color: '#0f172a',
   },
   rewardGrid: {
-    gap: 12,
+    gap: 14,
   },
   rewardCard: {
-    backgroundColor: '#f8fafc',
-    borderRadius: 16,
+    backgroundColor: '#fff',
+    borderRadius: 18,
     borderWidth: 2,
     borderColor: '#e2e8f0',
     paddingHorizontal: 20,
-    paddingVertical: 18,
+    paddingVertical: 20,
     gap: 6,
     position: 'relative',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
   rewardCardPopular: {
-    backgroundColor: '#fef3c7',
+    backgroundColor: '#fffbeb',
     borderColor: '#fbbf24',
     borderWidth: 3,
+    shadowColor: '#fbbf24',
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
   },
   popularBadge: {
     position: 'absolute',
@@ -244,8 +250,13 @@ const styles = StyleSheet.create({
     right: 12,
     backgroundColor: '#fbbf24',
     paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 8,
+    paddingVertical: 5,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
   },
   popularText: {
     fontSize: 11,
@@ -260,42 +271,52 @@ const styles = StyleSheet.create({
     color: '#0f172a',
   },
   rewardPractices: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
     color: '#1e40af',
   },
   customButton: {
     backgroundColor: '#eff6ff',
-    borderRadius: 16,
+    borderRadius: 18,
     borderWidth: 2,
     borderColor: '#bfdbfe',
-    paddingVertical: 18,
+    paddingVertical: 20,
     alignItems: 'center',
     marginTop: 8,
+    shadowColor: '#1e40af',
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
   customButtonText: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '700',
     color: '#1e40af',
   },
   customContainer: {
     backgroundColor: '#f8fafc',
-    borderRadius: 16,
+    borderRadius: 18,
     borderWidth: 2,
     borderColor: '#e2e8f0',
     padding: 20,
     gap: 14,
     marginTop: 8,
+    shadowColor: '#000',
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
   customLabel: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
     color: '#0f172a',
   },
   customInput: {
-    borderWidth: 1.5,
+    borderWidth: 2,
     borderColor: '#cbd5e1',
-    borderRadius: 12,
+    borderRadius: 14,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
@@ -313,9 +334,9 @@ const styles = StyleSheet.create({
     color: '#475569',
   },
   practicesInput: {
-    borderWidth: 1.5,
+    borderWidth: 2,
     borderColor: '#cbd5e1',
-    borderRadius: 12,
+    borderRadius: 14,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
@@ -326,16 +347,22 @@ const styles = StyleSheet.create({
   },
   customSubmitButton: {
     backgroundColor: '#1e40af',
-    borderRadius: 12,
+    borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
+    shadowColor: '#1e40af',
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
   },
   customSubmitButtonDisabled: {
     backgroundColor: '#cbd5e1',
+    shadowOpacity: 0,
   },
   customSubmitButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '700',
   },
 })

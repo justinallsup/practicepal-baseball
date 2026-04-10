@@ -1,40 +1,77 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
+  Animated,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import { useStore } from '../../lib/store'
+import { ProgressBar } from '../../components/ProgressBar'
 
 export default function SetGoalScreen() {
   const onboardingRewardSuggestion = useStore(s => s.onboardingRewardSuggestion)
+  const buttonScale = useRef(new Animated.Value(1)).current
+  const cardScale = useRef(new Animated.Value(0.9)).current
+  const fadeAnim = useRef(new Animated.Value(0)).current
 
-  // Parse reward and practice count
   const [rewardName, practiceCount] = onboardingRewardSuggestion?.split('|') || ['Practice Goal', '5']
   const practices = parseInt(practiceCount) || 5
 
+  useEffect(() => {
+    // Entrance animation
+    Animated.parallel([
+      Animated.spring(cardScale, {
+        toValue: 1,
+        friction: 8,
+        tension: 40,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+    ]).start()
+  }, [])
+
+  const handleContinue = () => {
+    Animated.sequence([
+      Animated.timing(buttonScale, {
+        toValue: 0.97,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.spring(buttonScale, {
+        toValue: 1,
+        friction: 5,
+        useNativeDriver: true,
+      }),
+    ]).start()
+
+    setTimeout(() => router.push('/onboarding/trial'), 150)
+  }
+
   return (
     <SafeAreaView style={styles.safe}>
+      <ProgressBar currentStep={5} totalSteps={6} />
       <View style={styles.content}>
         <View style={styles.top}>
           <Text style={styles.step}>5 of 6</Text>
-          <Text style={styles.title}>Here's how this works</Text>
+          <Text style={styles.title}>✨ Here's how this works</Text>
         </View>
 
-        <View style={styles.body}>
-          {/* Goal Display */}
-          <View style={styles.goalCard}>
+        <Animated.View style={[styles.body, { opacity: fadeAnim }]}>
+          <Animated.View style={[styles.goalCard, { transform: [{ scale: cardScale }] }]}>
             <Text style={styles.goalEmoji}>🎯</Text>
             <Text style={styles.goalTitle}>{rewardName}</Text>
             <View style={styles.progressDisplay}>
               <Text style={styles.progressText}>0 / {practices} practices</Text>
             </View>
-          </View>
+          </Animated.View>
 
-          {/* How it works steps */}
           <View style={styles.steps}>
             <View style={styles.stepRow}>
               <View style={styles.stepIcon}>
@@ -64,7 +101,6 @@ export default function SetGoalScreen() {
             </View>
           </View>
 
-          {/* Visual progress indicator */}
           <View style={styles.progressBar}>
             <View style={styles.progressBarTrack}>
               <View style={[styles.progressBarFill, { width: '0%' }]} />
@@ -74,15 +110,17 @@ export default function SetGoalScreen() {
               <Text style={styles.progressLabel}>{practices} practices</Text>
             </View>
           </View>
-        </View>
+        </Animated.View>
 
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.push('/onboarding/trial')}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.buttonText}>Got it</Text>
-        </TouchableOpacity>
+        <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleContinue}
+            activeOpacity={1}
+          >
+            <Text style={styles.buttonText}>Got it</Text>
+          </TouchableOpacity>
+        </Animated.View>
       </View>
     </SafeAreaView>
   )
@@ -99,7 +137,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   top: {
-    gap: 12,
+    gap: 16,
   },
   step: {
     fontSize: 13,
@@ -109,47 +147,52 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: '800',
     color: '#0f172a',
-    lineHeight: 36,
+    lineHeight: 40,
   },
   body: {
-    gap: 32,
+    gap: 36,
   },
   goalCard: {
     backgroundColor: '#eff6ff',
-    borderRadius: 24,
+    borderRadius: 28,
     borderWidth: 3,
     borderColor: '#bfdbfe',
-    paddingVertical: 28,
+    paddingVertical: 32,
     paddingHorizontal: 24,
     alignItems: 'center',
-    gap: 12,
+    gap: 14,
+    shadowColor: '#1e40af',
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 8,
   },
   goalEmoji: {
-    fontSize: 56,
+    fontSize: 64,
   },
   goalTitle: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: '800',
     color: '#1e40af',
     textAlign: 'center',
   },
   progressDisplay: {
     backgroundColor: 'rgba(30, 64, 175, 0.1)',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 12,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 14,
     marginTop: 8,
   },
   progressText: {
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: '700',
     color: '#1e40af',
   },
   steps: {
-    gap: 20,
+    gap: 22,
   },
   stepRow: {
     flexDirection: 'row',
@@ -157,30 +200,35 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   stepIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: '#1e40af',
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#1e40af',
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 4,
   },
   stepIconText: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '800',
     color: '#fff',
   },
   stepText: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 17,
     color: '#475569',
-    lineHeight: 24,
+    lineHeight: 26,
   },
   stepBold: {
     fontWeight: '700',
     color: '#0f172a',
   },
   progressBar: {
-    gap: 8,
+    gap: 10,
   },
   progressBarTrack: {
     height: 12,
@@ -198,20 +246,25 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   progressLabel: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '600',
     color: '#64748b',
   },
   button: {
     backgroundColor: '#1e40af',
-    borderRadius: 16,
-    height: 60,
+    borderRadius: 18,
+    height: 64,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#1e40af',
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 8,
   },
   buttonText: {
     color: '#fff',
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 19,
+    fontWeight: '800',
   },
 })

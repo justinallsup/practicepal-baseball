@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import { useStore } from '../../lib/store'
+import { ProgressBar } from '../../components/ProgressBar'
 
 const GOALS = [
   { value: 'Getting them to practice at all', icon: '😩' },
@@ -21,7 +22,8 @@ export default function GoalsScreen() {
   const setImprovementGoals = useStore(s => s.setImprovementGoals)
   const [selected, setSelected] = useState<string[]>([])
   const [showFeedback, setShowFeedback] = useState(false)
-  const fadeAnim = React.useRef(new Animated.Value(0)).current
+  const fadeAnim = useRef(new Animated.Value(0)).current
+  const buttonScale = useRef(new Animated.Value(1)).current
 
   const toggle = (goal: string) => {
     setSelected(prev =>
@@ -30,9 +32,22 @@ export default function GoalsScreen() {
   }
 
   const handleContinue = () => {
+    // Button press animation
+    Animated.sequence([
+      Animated.timing(buttonScale, {
+        toValue: 0.97,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.spring(buttonScale, {
+        toValue: 1,
+        friction: 5,
+        useNativeDriver: true,
+      }),
+    ]).start()
+
     setImprovementGoals(selected)
     
-    // Show brief feedback
     setShowFeedback(true)
     Animated.sequence([
       Animated.timing(fadeAnim, {
@@ -54,10 +69,11 @@ export default function GoalsScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
+      <ProgressBar currentStep={3} totalSteps={6} />
       <View style={styles.content}>
         <View style={styles.top}>
           <Text style={styles.step}>3 of 6</Text>
-          <Text style={styles.title}>What's the biggest struggle right now?</Text>
+          <Text style={styles.title}>🎯 What's the biggest struggle right now?</Text>
           <Text style={styles.subtitle}>Select all that apply</Text>
         </View>
         <View style={styles.options}>
@@ -72,7 +88,7 @@ export default function GoalsScreen() {
                   idx === 0 && !isSelected && styles.pillPopular,
                 ]}
                 onPress={() => toggle(goal.value)}
-                activeOpacity={0.8}
+                activeOpacity={1}
               >
                 {idx === 0 && !isSelected && (
                   <View style={styles.popularBadge}>
@@ -92,16 +108,17 @@ export default function GoalsScreen() {
             )
           })}
         </View>
-        <TouchableOpacity
-          style={[styles.button, selected.length === 0 && styles.buttonDisabled]}
-          onPress={handleContinue}
-          activeOpacity={0.85}
-          disabled={selected.length === 0}
-        >
-          <Text style={styles.buttonText}>Continue →</Text>
-        </TouchableOpacity>
+        <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
+          <TouchableOpacity
+            style={[styles.button, selected.length === 0 && styles.buttonDisabled]}
+            onPress={handleContinue}
+            activeOpacity={1}
+            disabled={selected.length === 0}
+          >
+            <Text style={styles.buttonText}>Continue →</Text>
+          </TouchableOpacity>
+        </Animated.View>
 
-        {/* Feedback toast */}
         {showFeedback && (
           <Animated.View style={[styles.feedbackToast, { opacity: fadeAnim }]}>
             <Text style={styles.feedbackText}>Perfect. Let's build a plan 🎯</Text>
@@ -121,10 +138,10 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 32,
     justifyContent: 'center',
-    gap: 28,
+    gap: 32,
   },
   top: {
-    gap: 8,
+    gap: 12,
   },
   step: {
     fontSize: 13,
@@ -134,21 +151,22 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: '800',
     color: '#0f172a',
-    lineHeight: 36,
+    lineHeight: 40,
   },
   subtitle: {
-    fontSize: 15,
+    fontSize: 16,
     color: '#64748b',
+    fontWeight: '500',
   },
   options: {
-    gap: 12,
+    gap: 14,
   },
   pill: {
-    backgroundColor: '#f8fafc',
-    borderRadius: 16,
+    backgroundColor: '#fff',
+    borderRadius: 20,
     borderWidth: 2,
     borderColor: '#e2e8f0',
     paddingHorizontal: 24,
@@ -157,20 +175,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 16,
     position: 'relative',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
   pillPopular: {
-    backgroundColor: '#fef3c7',
+    backgroundColor: '#fffbeb',
     borderColor: '#fbbf24',
     borderWidth: 3,
+    shadowColor: '#fbbf24',
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
   },
   popularBadge: {
     position: 'absolute',
     top: -10,
     right: 16,
     backgroundColor: '#fbbf24',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
   },
   popularText: {
     fontSize: 11,
@@ -183,9 +216,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#eff6ff',
     borderColor: '#1e40af',
     borderWidth: 3,
+    shadowColor: '#1e40af',
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
   },
   pillIcon: {
-    fontSize: 28,
+    fontSize: 32,
   },
   pillText: {
     flex: 1,
@@ -212,18 +250,24 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: '#1e40af',
-    borderRadius: 16,
-    height: 60,
+    borderRadius: 18,
+    height: 64,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#1e40af',
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 8,
   },
   buttonDisabled: {
     opacity: 0.4,
+    shadowOpacity: 0,
   },
   buttonText: {
     color: '#fff',
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 19,
+    fontWeight: '800',
   },
   feedbackToast: {
     position: 'absolute',
@@ -231,18 +275,18 @@ const styles = StyleSheet.create({
     left: 32,
     right: 32,
     backgroundColor: '#22c55e',
-    borderRadius: 16,
-    paddingVertical: 16,
+    borderRadius: 20,
+    paddingVertical: 18,
     paddingHorizontal: 24,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
+    shadowColor: '#22c55e',
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 8,
   },
   feedbackText: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '700',
     color: '#fff',
   },

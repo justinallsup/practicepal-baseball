@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import { useStore } from '../../lib/store'
+import { ProgressBar } from '../../components/ProgressBar'
 
 // TODO: integrate Stripe or RevenueCat
 
@@ -40,6 +41,7 @@ export default function TrialScreen() {
   return (
     <View style={styles.bg}>
       <SafeAreaView style={styles.safe}>
+        <ProgressBar currentStep={6} totalSteps={6} />
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <Text style={styles.step}>6 of 6</Text>
           <Text style={styles.title}>Start your 3-day free trial</Text>
