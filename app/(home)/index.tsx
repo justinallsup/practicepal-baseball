@@ -17,6 +17,9 @@ import StreakBadge from '../../components/StreakBadge'
 import WeeklyTracker from '../../components/WeeklyTracker'
 import PracticeTypeSelector from '../../components/PracticeTypeSelector'
 import RewardProgress from '../../components/RewardProgress'
+import { PracticeModeSelector } from '../../components/PracticeModeSelector'
+import { PracticeTimerModal } from '../../components/PracticeTimerModal'
+import { QuickPracticeModal } from '../../components/QuickPracticeModal'
 import {
   requestNotificationPermission,
   scheduleStreakReminder,
@@ -61,6 +64,9 @@ export default function HomeScreen() {
   const [showRewardModal, setShowRewardModal] = useState(false)
   const [selectedFeeling, setSelectedFeeling] = useState<Feeling | null>(null)
   const [showNotifPrompt, setShowNotifPrompt] = useState(false)
+  const [showPracticeModeSelector, setShowPracticeModeSelector] = useState(false)
+  const [showKidPracticeModal, setShowKidPracticeModal] = useState(false)
+  const [showQuickPracticeModal, setShowQuickPracticeModal] = useState(false)
 
   // Animation refs
   const successScale = useRef(new Animated.Value(0)).current
@@ -78,8 +84,8 @@ export default function HomeScreen() {
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
       } catch {}
     }
-    setSelectedTypes([])
-    setShowModal(true)
+    // Show practice mode selector instead of instant completion
+    setShowPracticeModeSelector(true)
   }, [])
 
   const handleToggleType = useCallback((type: PracticeType) => {
@@ -87,6 +93,89 @@ export default function HomeScreen() {
       prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
     )
   }, [])
+
+  const handleSelectKidMode = useCallback(() => {
+    setShowPracticeModeSelector(false)
+    setShowKidPracticeModal(true)
+  }, [])
+
+  const handleSelectQuickMode = useCallback(() => {
+    setShowPracticeModeSelector(false)
+    setShowQuickPracticeModal(true)
+  }, [])
+
+  const handlePracticeComplete = useCallback(() => {
+    setShowKidPracticeModal(false)
+    setShowQuickPracticeModal(false)
+    
+    // Now log the practice
+    const result = logPractice([])
+    if (!result.alreadyLoggedToday) {
+      setLoggedThisSession(true)
+
+      // Check if reward was just earned
+      if (reward && !isRewardEarned()) {
+        const progress = getRewardProgress()
+        if (progress >= reward.targetValue) {
+          markRewardEarned()
+          setShowRewardModal(true)
+        }
+      }
+
+      // Re-schedule streak reminder if notifications are enabled
+      if (notificationsEnabled) {
+        const progress = getRewardProgress()
+        scheduleStreakReminder({
+          rewardName: reward?.rewardName,
+          remainingPractices: reward
+            ? Math.max(0, reward.targetValue - progress)
+            : undefined,
+          currentStreak: getCurrentStreak(),
+        }).catch(() => {})
+      }
+
+      // Animate success
+      Animated.parallel([
+        Animated.spring(successScale, {
+          toValue: 1,
+          useNativeDriver: true,
+          damping: 12,
+          stiffness: 150,
+        }),
+        Animated.timing(confettiOpacity, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        const currentLogs = useStore.getState().logs
+        if (currentLogs.length === 2 && !hasAskedNotificationPermission) {
+          setTimeout(() => {
+            setShowNotifPrompt(true)
+          }, 600)
+        }
+
+        setTimeout(() => {
+          const show = shouldShowPaywall()
+          if (show) {
+            router.push('/(home)/paywall')
+          }
+        }, 1800)
+      })
+    }
+  }, [
+    logPractice,
+    reward,
+    isRewardEarned,
+    getRewardProgress,
+    markRewardEarned,
+    notificationsEnabled,
+    getCurrentStreak,
+    shouldShowPaywall,
+    hasAskedNotificationPermission,
+    successScale,
+    confettiOpacity,
+  ])
 
   const handleDone = useCallback(() => {
     setShowModal(false)
@@ -336,7 +425,7 @@ export default function HomeScreen() {
               activeOpacity={0.85}
             >
               <Text style={styles.logButtonEmoji}>⚾</Text>
-              <Text style={styles.logButtonText}>Log Practice</Text>
+              <Text style={styles.logButtonText}>Start Practice ⚾</Text>
             </TouchableOpacity>
             <Text style={styles.logSubtitle}>Tap to log today's practice</Text>
           </View>
@@ -427,6 +516,29 @@ export default function HomeScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Practice Mode Selector */}
+      <PracticeModeSelector
+        visible={showPracticeModeSelector}
+        onSelectKidMode={handleSelectKidMode}
+        onSelectQuickMode={handleSelectQuickMode}
+        onCancel={() => setShowPracticeModeSelector(false)}
+      />
+
+      {/* Kid Mode Practice Timer */}
+      <PracticeTimerModal
+        visible={showKidPracticeModal}
+        onComplete={handlePracticeComplete}
+        onCancel={() => setShowKidPracticeModal(false)}
+      />
+
+      {/* Quick Practice Timer */}
+      <QuickPracticeModal
+        visible={showQuickPracticeModal}
+        onComplete={handlePracticeComplete}
+        onCancel={() => setShowQuickPracticeModal(false)}
+      />
+
     </SafeAreaView>
   )
 }
