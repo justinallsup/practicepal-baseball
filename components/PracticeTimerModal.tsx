@@ -7,6 +7,7 @@ import {
   Modal,
   Animated,
 } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { PracticeDuration, PRACTICE_CHALLENGES } from '../lib/practice-types'
 
 interface PracticeTimerModalProps {
@@ -115,8 +116,13 @@ export function PracticeTimerModal({ visible, onComplete, onCancel }: PracticeTi
   if (!visible) return null
 
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="fullScreen">
-      <View style={styles.container}>
+    <Modal 
+      visible={visible} 
+      animationType="slide" 
+      transparent={false}
+    >
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.container}>
         {/* Setup Phase */}
         {phase === 'setup' && (
           <View style={styles.setupContainer}>
@@ -238,15 +244,19 @@ export function PracticeTimerModal({ visible, onComplete, onCancel }: PracticeTi
             </TouchableOpacity>
           </View>
         )}
-      </View>
+        </View>
+      </SafeAreaView>
     </Modal>
   )
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: '#10b981',
+  },
+  container: {
+    flex: 1,
     padding: 20,
     justifyContent: 'center',
   },
