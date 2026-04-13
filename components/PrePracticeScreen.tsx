@@ -9,6 +9,7 @@ import {
 } from 'react-native'
 import { router } from 'expo-router'
 import { PRACTICE_CHALLENGES, DRILL_CHIPS, PracticeDuration } from '../../lib/practice-types'
+import { EmojiOrImage } from '../EmojiOrImage'
 
 interface PrePracticeScreenProps {
   childName: string
@@ -91,7 +92,7 @@ export default function PrePracticeScreen({
                   selectedChallenge === challenge.id && styles.challengeCardSelected,
                 ]}
               >
-                <Text style={styles.challengeEmoji}>{challenge.emoji}</Text>
+                <EmojiOrImage value={challenge.emoji} size={32} imageStyle={{ marginRight: 12 }} />
                 <View style={styles.challengeInfo}>
                   <Text
                     style={[
@@ -136,7 +137,7 @@ export default function PrePracticeScreen({
                   selectedDrills.includes(drill.id) && styles.drillChipSelected,
                 ]}
               >
-                <Text style={styles.drillEmoji}>{drill.emoji}</Text>
+                <EmojiOrImage value={drill.emoji} size={16} />
                 <Text
                   style={[
                     styles.drillText,

@@ -9,6 +9,7 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { PracticeDuration, PRACTICE_CHALLENGES } from '../lib/practice-types'
+import { EmojiOrImage } from './EmojiOrImage'
 
 interface PracticeTimerModalProps {
   visible: boolean
@@ -158,7 +159,7 @@ export function PracticeTimerModal({ visible, onComplete, onCancel }: PracticeTi
                     selectedChallenge === challenge.id && styles.challengeCardActive
                   ]}
                 >
-                  <Text style={styles.challengeEmoji}>{challenge.emoji}</Text>
+                  <EmojiOrImage value={challenge.emoji} size={32} />
                   <Text style={styles.challengeTitle}>{challenge.title}</Text>
                 </TouchableOpacity>
               ))}
@@ -196,9 +197,10 @@ export function PracticeTimerModal({ visible, onComplete, onCancel }: PracticeTi
 
             {selectedChallenge && (
               <View style={styles.challengeDisplay}>
-                <Text style={styles.challengeDisplayEmoji}>
-                  {PRACTICE_CHALLENGES.find(c => c.id === selectedChallenge)?.emoji}
-                </Text>
+                <EmojiOrImage
+                  value={PRACTICE_CHALLENGES.find(c => c.id === selectedChallenge)?.emoji ?? ''}
+                  size={48}
+                />
                 <Text style={styles.challengeDisplayText}>
                   {PRACTICE_CHALLENGES.find(c => c.id === selectedChallenge)?.title}
                 </Text>

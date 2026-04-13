@@ -2,6 +2,9 @@
  * Practice Session Types for Baseball Practice Pal (React Native)
  */
 
+// Sentinel value: when an emoji field equals this, render the bat PNG image instead of a text emoji
+export const BAT_IMAGE_SENTINEL = '__BAT_IMAGE__'
+
 export type PracticeSessionState = 
   | 'not_started'
   | 'pre_practice'
@@ -64,13 +67,13 @@ export const PRACTICE_CHALLENGES: PracticeChallenge[] = [
     id: 'throw-25',
     title: 'Throw 25 balls',
     description: 'Practice your throwing accuracy',
-    emoji: '⚾',
+    emoji: BAT_IMAGE_SENTINEL,
   },
   {
     id: 'hit-20',
     title: 'Hit 20 balls off tee',
     description: 'Work on your batting stance',
-    emoji: '⚾',
+    emoji: BAT_IMAGE_SENTINEL,
   },
   {
     id: 'field-15',
@@ -97,7 +100,7 @@ export const DRILL_CHIPS: DrillChip[] = [
   {
     id: 'throwing',
     title: 'Throwing',
-    emoji: '⚾',
+    emoji: BAT_IMAGE_SENTINEL,
   },
   {
     id: 'ground-balls',
@@ -107,7 +110,7 @@ export const DRILL_CHIPS: DrillChip[] = [
   {
     id: 'batting-tee',
     title: 'Batting Tee',
-    emoji: '⚾',
+    emoji: BAT_IMAGE_SENTINEL,
   },
   {
     id: 'catching',

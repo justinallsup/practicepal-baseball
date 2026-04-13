@@ -5,10 +5,13 @@ import {
   StyleSheet,
   TouchableOpacity,
   Animated,
+  Image,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
+
+const batImage = require('../../assets/bat.png')
 
 export default function Welcome() {
   // Animation refs
@@ -88,7 +91,7 @@ export default function Welcome() {
         <View style={[styles.fieldLine, styles.fieldLine2]} />
         <View style={[styles.fieldLine, styles.fieldLine3]} />
         <Text style={styles.bgIcon1}>🧤</Text>
-        <Text style={styles.bgIcon2}>⚾</Text>
+        <Image source={batImage} style={styles.bgIcon2} resizeMode="contain" />
       </View>
 
       <SafeAreaView style={styles.safe}>
@@ -200,7 +203,8 @@ const styles = StyleSheet.create({
   },
   bgIcon2: {
     position: 'absolute',
-    fontSize: 50,
+    width: 50,
+    height: 50,
     opacity: 0.05,
     bottom: '20%',
     right: '15%',

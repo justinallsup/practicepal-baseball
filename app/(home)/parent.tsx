@@ -6,13 +6,18 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  Image,
   Platform,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useStore } from '../../lib/store'
 
+const batImage = require('../../assets/bat.png')
+
+const BAT_SENTINEL = '__BAT_IMAGE__'
+
 const GEAR_ITEMS = [
-  { emoji: '⚾', name: 'Youth Bat', price: '$49.99', url: 'https://www.amazon.com/s?k=youth+baseball+bat' },
+  { emoji: BAT_SENTINEL, name: 'Youth Bat', price: '$49.99', url: 'https://www.amazon.com/s?k=youth+baseball+bat' },
   { emoji: '🧤', name: 'Batting Gloves', price: '$24.99', url: 'https://www.amazon.com/s?k=youth+batting+gloves' },
   { emoji: '🎯', name: 'Training Gear', price: '$34.99', url: 'https://www.amazon.com/s?k=baseball+training+equipment' },
 ]
@@ -176,7 +181,10 @@ export default function ParentScreen() {
                 onPress={() => openURL(item.url)}
                 activeOpacity={0.8}
               >
-                <Text style={styles.gearEmoji}>{item.emoji}</Text>
+                {item.emoji === BAT_SENTINEL
+                  ? <Image source={batImage} style={styles.gearEmoji} resizeMode="contain" />
+                  : <Text style={styles.gearEmoji}>{item.emoji}</Text>
+                }
                 <Text style={styles.gearName}>{item.name}</Text>
                 <Text style={styles.gearPrice}>{item.price}</Text>
                 <Text style={styles.shopBtn}>Shop →</Text>
@@ -380,7 +388,8 @@ const styles = StyleSheet.create({
     borderColor: '#e2e8f0',
   },
   gearEmoji: {
-    fontSize: 28,
+    width: 28,
+    height: 28,
   },
   gearName: {
     fontSize: 12,
