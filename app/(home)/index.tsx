@@ -20,6 +20,8 @@ import RewardProgress from '../../components/RewardProgress'
 import { PracticeModeSelector } from '../../components/PracticeModeSelector'
 import { PracticeTimerModal } from '../../components/PracticeTimerModal'
 import { QuickPracticeModal } from '../../components/QuickPracticeModal'
+import { AppIcon } from '../../components/AppIcon'
+import { Flame, Star, Target } from 'lucide-react-native'
 import {
   requestNotificationPermission,
   scheduleStreakReminder,
@@ -27,10 +29,10 @@ import {
 
 type Feeling = 'easy' | 'solid' | 'hard'
 
-const FEELING_OPTIONS: { value: Feeling; emoji: string; label: string }[] = [
-  { value: 'easy', emoji: '😐', label: 'Easy' },
-  { value: 'solid', emoji: '💪', label: 'Solid' },
-  { value: 'hard', emoji: '🔥', label: 'Hard' },
+const FEELING_OPTIONS: { value: Feeling; icon: 'star' | 'baseball' | 'flame'; label: string }[] = [
+  { value: 'easy', icon: 'star' as const, label: 'Easy' },
+  { value: 'solid', icon: 'baseball' as const, label: 'Solid' },
+  { value: 'hard', icon: 'flame' as const, label: 'Hard' },
 ]
 
 const FEELING_MESSAGES: Record<Feeling, string> = {
@@ -351,7 +353,7 @@ export default function HomeScreen() {
               ]}
             >
               <Text style={styles.successEmoji}>✅</Text>
-              <Text style={styles.successTitle}>Practice logged! 🎉</Text>
+              <Text style={styles.successTitle}>Practice Logged!</Text>
               <Text style={styles.successStreak}>
                 {child?.name ?? 'Player'} is on a {newStreak}-day streak 🔥
               </Text>
@@ -386,7 +388,7 @@ export default function HomeScreen() {
                       onPress={() => handleFeelingSelect(opt.value)}
                       activeOpacity={0.75}
                     >
-                      <Text style={styles.feelingEmoji}>{opt.emoji}</Text>
+                      <AppIcon name={opt.icon} size={24} color={feeling === opt.value ? '#10b981' : '#94a3b8'} />
                       <Text style={styles.feelingLabel}>{opt.label}</Text>
                     </TouchableOpacity>
                   ))}
@@ -424,8 +426,8 @@ export default function HomeScreen() {
               onPress={handleLogPress}
               activeOpacity={0.85}
             >
-              <Text style={styles.logButtonEmoji}>⚾</Text>
-              <Text style={styles.logButtonText}>Start Practice ⚾</Text>
+              <AppIcon name="baseball" size={24} color="#fff" />
+              <Text style={styles.logButtonText}>Start Practice</Text>
             </TouchableOpacity>
             <Text style={styles.logSubtitle}>Tap to log today's practice</Text>
           </View>
@@ -472,7 +474,7 @@ export default function HomeScreen() {
       <Modal visible={showRewardModal} transparent animationType="fade">
         <View style={styles.rewardModalOverlay}>
           <View style={styles.rewardModalCard}>
-            <Text style={styles.rewardModalEmoji}>🎉</Text>
+            <AppIcon name="trophy" size={64} color="#fbbf24" />
             <Text style={styles.rewardModalTitle}>Reward Earned!</Text>
             <Text style={styles.rewardModalReward}>{reward?.rewardName}</Text>
             <Text style={styles.rewardModalSub}>{child?.name} earned this reward!</Text>

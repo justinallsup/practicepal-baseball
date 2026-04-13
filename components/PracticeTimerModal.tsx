@@ -9,7 +9,8 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { PracticeDuration, PRACTICE_CHALLENGES } from '../lib/practice-types'
-import { EmojiOrImage } from './EmojiOrImage'
+import { AppIcon } from './AppIcon'
+import { Play } from 'lucide-react-native'
 
 interface PracticeTimerModalProps {
   visible: boolean
@@ -159,14 +160,17 @@ export function PracticeTimerModal({ visible, onComplete, onCancel }: PracticeTi
                     selectedChallenge === challenge.id && styles.challengeCardActive
                   ]}
                 >
-                  <EmojiOrImage value={challenge.emoji} size={32} />
+                  <AppIcon name={challenge.icon} size={32} color={selectedChallenge === challenge.id ? '#10b981' : '#64748b'} />
                   <Text style={styles.challengeTitle}>{challenge.title}</Text>
                 </TouchableOpacity>
               ))}
             </View>
 
             <TouchableOpacity onPress={handleStart} style={styles.startButton}>
-              <Text style={styles.startButtonText}>Start Practice 🚀</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Play size={20} color="#10b981" />
+                <Text style={styles.startButtonText}>Start Practice</Text>
+              </View>
             </TouchableOpacity>
             <TouchableOpacity onPress={handleCancelModal} style={styles.cancelButton}>
               <Text style={styles.cancelButtonText}>Cancel</Text>
@@ -197,9 +201,10 @@ export function PracticeTimerModal({ visible, onComplete, onCancel }: PracticeTi
 
             {selectedChallenge && (
               <View style={styles.challengeDisplay}>
-                <EmojiOrImage
-                  value={PRACTICE_CHALLENGES.find(c => c.id === selectedChallenge)?.emoji ?? ''}
+                <AppIcon
+                  name={PRACTICE_CHALLENGES.find(c => c.id === selectedChallenge)?.icon ?? 'baseball'}
                   size={48}
+                  color="#fff"
                 />
                 <Text style={styles.challengeDisplayText}>
                   {PRACTICE_CHALLENGES.find(c => c.id === selectedChallenge)?.title}
@@ -209,7 +214,7 @@ export function PracticeTimerModal({ visible, onComplete, onCancel }: PracticeTi
 
             <TouchableOpacity onPress={handleFinish} style={[styles.finishButton, isComplete && styles.finishButtonComplete]}>
               <Text style={styles.finishButtonText}>
-                {isComplete ? "🎉 I'm Done!" : 'Finish Practice'}
+                {isComplete ? "I'm Done!" : 'Finish Practice'}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={handleCancelModal} style={styles.cancelButton}>
@@ -221,7 +226,7 @@ export function PracticeTimerModal({ visible, onComplete, onCancel }: PracticeTi
         {/* Complete Phase */}
         {phase === 'complete' && (
           <View style={styles.completeContainer}>
-            <Text style={styles.completeEmoji}>🎉</Text>
+            <AppIcon name="trophy" size={72} color="#fbbf24" />
             <Text style={styles.completeTitle}>Nice work!</Text>
             <Text style={styles.completeSubtitle}>You completed practice!</Text>
             

@@ -9,7 +9,8 @@ import {
 } from 'react-native'
 import { router } from 'expo-router'
 import { PRACTICE_CHALLENGES, DRILL_CHIPS, PracticeDuration } from '../../lib/practice-types'
-import { EmojiOrImage } from '../EmojiOrImage'
+import { AppIcon } from '../AppIcon'
+import { Play } from 'lucide-react-native'
 
 interface PrePracticeScreenProps {
   childName: string
@@ -92,7 +93,13 @@ export default function PrePracticeScreen({
                   selectedChallenge === challenge.id && styles.challengeCardSelected,
                 ]}
               >
-                <EmojiOrImage value={challenge.emoji} size={32} imageStyle={{ marginRight: 12 }} />
+                <View style={styles.challengeIconWrap}>
+                  <AppIcon
+                    name={challenge.icon}
+                    size={28}
+                    color={selectedChallenge === challenge.id ? '#10b981' : '#fff'}
+                  />
+                </View>
                 <View style={styles.challengeInfo}>
                   <Text
                     style={[
@@ -137,7 +144,11 @@ export default function PrePracticeScreen({
                   selectedDrills.includes(drill.id) && styles.drillChipSelected,
                 ]}
               >
-                <EmojiOrImage value={drill.emoji} size={16} />
+                <AppIcon
+                  name={drill.icon}
+                  size={16}
+                  color={selectedDrills.includes(drill.id) ? '#10b981' : '#fff'}
+                />
                 <Text
                   style={[
                     styles.drillText,
@@ -171,7 +182,10 @@ export default function PrePracticeScreen({
       {/* Action Buttons */}
       <View style={styles.footer}>
         <TouchableOpacity onPress={handleStartPractice} style={styles.startButton}>
-          <Text style={styles.startButtonText}>Start Practice 🚀</Text>
+          <View style={styles.startButtonInner}>
+            <Play size={20} color="#10b981" />
+            <Text style={styles.startButtonText}>Start Practice</Text>
+          </View>
         </TouchableOpacity>
         <TouchableOpacity onPress={onCancel} style={styles.cancelButton}>
           <Text style={styles.cancelButtonText}>Cancel</Text>
@@ -278,9 +292,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderColor: '#10b981',
   },
-  challengeEmoji: {
-    fontSize: 32,
+  challengeIconWrap: {
     marginRight: 12,
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   challengeInfo: {
     flex: 1,
@@ -331,9 +348,6 @@ const styles = StyleSheet.create({
   drillChipSelected: {
     backgroundColor: '#fff',
   },
-  drillEmoji: {
-    fontSize: 16,
-  },
   drillText: {
     fontSize: 14,
     fontWeight: '600',
@@ -373,6 +387,11 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     borderRadius: 16,
     alignItems: 'center',
+  },
+  startButtonInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   startButtonText: {
     fontSize: 18,

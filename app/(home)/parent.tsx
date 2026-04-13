@@ -6,20 +6,17 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
-  Image,
   Platform,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useStore } from '../../lib/store'
+import { AppIcon } from '../../components/AppIcon'
+import type { AppIconName } from '../../components/AppIcon'
 
-const batImage = require('../../assets/bat.png')
-
-const BAT_SENTINEL = '__BAT_IMAGE__'
-
-const GEAR_ITEMS = [
-  { emoji: BAT_SENTINEL, name: 'Youth Bat', price: '$49.99', url: 'https://www.amazon.com/s?k=youth+baseball+bat' },
-  { emoji: '🧤', name: 'Batting Gloves', price: '$24.99', url: 'https://www.amazon.com/s?k=youth+batting+gloves' },
-  { emoji: '🎯', name: 'Training Gear', price: '$34.99', url: 'https://www.amazon.com/s?k=baseball+training+equipment' },
+const GEAR_ITEMS: { icon: AppIconName; name: string; price: string; url: string }[] = [
+  { icon: 'bat', name: 'Youth Bat', price: '$49.99', url: 'https://www.amazon.com/s?k=youth+baseball+bat' },
+  { icon: 'glove', name: 'Batting Gloves', price: '$24.99', url: 'https://www.amazon.com/s?k=youth+batting+gloves' },
+  { icon: 'target', name: 'Training Gear', price: '$34.99', url: 'https://www.amazon.com/s?k=baseball+training+equipment' },
 ]
 
 function openURL(url: string) {
@@ -160,7 +157,7 @@ export default function ParentScreen() {
             </View>
             <View style={styles.statCard}>
               <Text style={styles.statNumber}>{streak}</Text>
-              <Text style={styles.statLabel}>Day Streak 🔥</Text>
+              <Text style={styles.statLabel}>Day Streak</Text>
             </View>
           </View>
           <View style={styles.totalPointsRow}>
@@ -171,7 +168,7 @@ export default function ParentScreen() {
 
         {/* Gear Shop */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Gear Shop 🔥</Text>
+          <Text style={styles.sectionTitle}>Gear Shop</Text>
           <Text style={styles.sectionSub}>Affiliate links — we earn a small commission</Text>
           <View style={styles.gearGrid}>
             {GEAR_ITEMS.map(item => (
@@ -181,10 +178,7 @@ export default function ParentScreen() {
                 onPress={() => openURL(item.url)}
                 activeOpacity={0.8}
               >
-                {item.emoji === BAT_SENTINEL
-                  ? <Image source={batImage} style={styles.gearEmoji} resizeMode="contain" />
-                  : <Text style={styles.gearEmoji}>{item.emoji}</Text>
-                }
+                <AppIcon name={item.icon} size={28} color="#475569" />
                 <Text style={styles.gearName}>{item.name}</Text>
                 <Text style={styles.gearPrice}>{item.price}</Text>
                 <Text style={styles.shopBtn}>Shop →</Text>
@@ -195,7 +189,7 @@ export default function ParentScreen() {
 
         {/* Invite Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Invite a Teammate ⚾</Text>
+          <Text style={styles.sectionTitle}>Invite a Teammate</Text>
           <Text style={styles.inviteSubtext}>+100 points per friend who joins (limited time)</Text>
           <View style={styles.codeBox}>
             <Text style={styles.codeLabel}>Your invite code:</Text>

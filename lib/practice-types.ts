@@ -2,8 +2,7 @@
  * Practice Session Types for Baseball Practice Pal (React Native)
  */
 
-// Sentinel value: when an emoji field equals this, render the bat PNG image instead of a text emoji
-export const BAT_IMAGE_SENTINEL = '__BAT_IMAGE__'
+import type { AppIconName } from '../components/AppIcon'
 
 export type PracticeSessionState = 
   | 'not_started'
@@ -19,13 +18,13 @@ export interface PracticeChallenge {
   id: string
   title: string
   description: string
-  emoji: string
+  icon: AppIconName
 }
 
 export interface DrillChip {
   id: string
   title: string
-  emoji: string
+  icon: AppIconName
 }
 
 export interface PracticeSession {
@@ -67,31 +66,31 @@ export const PRACTICE_CHALLENGES: PracticeChallenge[] = [
     id: 'throw-25',
     title: 'Throw 25 balls',
     description: 'Practice your throwing accuracy',
-    emoji: BAT_IMAGE_SENTINEL,
+    icon: 'baseball',
   },
   {
     id: 'hit-20',
     title: 'Hit 20 balls off tee',
     description: 'Work on your batting stance',
-    emoji: BAT_IMAGE_SENTINEL,
+    icon: 'bat',
   },
   {
     id: 'field-15',
     title: 'Field 15 ground balls',
     description: 'Improve your fielding skills',
-    emoji: '🧤',
+    icon: 'glove',
   },
   {
     id: 'catch-20',
     title: 'Catch 20 good throws',
     description: 'Practice catching fly balls',
-    emoji: '🥎',
+    icon: 'baseball',
   },
   {
     id: 'quick-feet-5',
     title: 'Quick feet for 5 minutes',
     description: 'Build speed and agility',
-    emoji: '👟',
+    icon: 'run',
   },
 ]
 
@@ -100,49 +99,49 @@ export const DRILL_CHIPS: DrillChip[] = [
   {
     id: 'throwing',
     title: 'Throwing',
-    emoji: BAT_IMAGE_SENTINEL,
+    icon: 'baseball',
   },
   {
     id: 'ground-balls',
     title: 'Ground Balls',
-    emoji: '🧤',
+    icon: 'glove',
   },
   {
     id: 'batting-tee',
     title: 'Batting Tee',
-    emoji: BAT_IMAGE_SENTINEL,
+    icon: 'bat',
   },
   {
     id: 'catching',
     title: 'Catching',
-    emoji: '🥎',
+    icon: 'baseball',
   },
   {
     id: 'quick-feet',
     title: 'Quick Feet',
-    emoji: '👟',
+    icon: 'run',
   },
 ]
 
 // Encouragement messages by milestone
 export const ENCOURAGEMENT_MESSAGES: Record<number, string[]> = {
   25: [
-    "Nice! Keep it up! 💪",
-    "Great start! You're doing awesome! 🌟",
-    "Looking good out there! 🔥",
-    "Keep going strong! ⚡",
+    "Nice! Keep it up!",
+    "Great start! You're doing awesome!",
+    "Looking good out there!",
+    "Keep going strong!",
   ],
   50: [
-    "You're on fire! 🔥",
-    "Halfway there! You got this! 💪",
-    "Amazing work! Keep pushing! 🌟",
-    "You're crushing it! ⚾",
+    "You're on fire!",
+    "Halfway there! You got this!",
+    "Amazing work! Keep pushing!",
+    "You're crushing it!",
   ],
   75: [
-    "Almost there! 🎯",
-    "Final stretch! You're so close! 🏃",
-    "Great hustle! Finish strong! 💪",
-    "You're almost done! Keep it up! 🔥",
+    "Almost there!",
+    "Final stretch! You're so close!",
+    "Great hustle! Finish strong!",
+    "You're almost done! Keep it up!",
   ],
 }
 

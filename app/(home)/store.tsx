@@ -9,9 +9,12 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useStore } from '../../lib/store'
+import { AppIcon } from '../../components/AppIcon'
+import type { AppIconName } from '../../components/AppIcon'
 
 interface StoreItem {
-  emoji: string
+  emoji?: string
+  icon?: AppIconName
   name: string
   points: number
 }
@@ -28,14 +31,14 @@ const STORE_ITEMS: { section: string; items: StoreItem[] }[] = [
   {
     section: 'Medium Rewards (200–300 pts)',
     items: [
-      { emoji: '🧤', name: 'Batting Gloves', points: 200 },
-      { emoji: '⚾', name: 'Batting Cages', points: 300 },
+      { icon: 'glove', name: 'Batting Gloves', points: 200 },
+      { icon: 'baseball', name: 'Batting Cages', points: 300 },
     ],
   },
   {
     section: 'Big Rewards (500+ pts)',
     items: [
-      { emoji: '🔥', name: 'New Bat', points: 500 },
+      { icon: 'bat', name: 'New Bat', points: 500 },
     ],
   },
 ]
@@ -59,7 +62,7 @@ export default function StoreScreen() {
 
     Alert.alert(
       'Confirm Redemption',
-      `Redeem ${item.emoji} ${item.name} for ${item.points} pts?`,
+      `Redeem ${item.name} for ${item.points} pts?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -117,7 +120,10 @@ export default function StoreScreen() {
               const canAfford = totalPoints >= item.points
               return (
                 <View key={item.name} style={styles.itemRow}>
-                  <Text style={styles.itemEmoji}>{item.emoji}</Text>
+                  {item.icon
+                    ? <AppIcon name={item.icon} size={32} color="#475569" />
+                    : <Text style={styles.itemEmoji}>{item.emoji}</Text>
+                  }
                   <View style={styles.itemInfo}>
                     <Text style={styles.itemName}>{item.name}</Text>
                     <Text style={styles.itemPoints}>⭐ {item.points} pts</Text>
@@ -138,7 +144,7 @@ export default function StoreScreen() {
         ))}
 
         <Text style={styles.footer}>
-          Log practice every day to earn more points! ⚾
+          Log practice every day to earn more points!
         </Text>
       </ScrollView>
     </SafeAreaView>

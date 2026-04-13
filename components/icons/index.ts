@@ -1,0 +1,6 @@
+export { BaseballIcon } from './BaseballIcon'
+export { BatIcon } from './BatIcon'
+export { GloveIcon } from './GloveIcon'
+export { TrophyIcon } from './TrophyIcon'
+export { TargetIcon } from './TargetIcon'
+export { RunIcon } from './RunIcon'
