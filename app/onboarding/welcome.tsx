@@ -88,7 +88,7 @@ export default function Welcome() {
         <View style={[styles.fieldLine, styles.fieldLine2]} />
         <View style={[styles.fieldLine, styles.fieldLine3]} />
         <Text style={styles.bgIcon1}>🧤</Text>
-        <Text style={styles.bgIcon2}>🏏</Text>
+        <Text style={styles.bgIcon2}>⚾</Text>
       </View>
 
       <SafeAreaView style={styles.safe}>

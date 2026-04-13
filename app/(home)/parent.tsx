@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useStore } from '../../lib/store'
 
 const GEAR_ITEMS = [
-  { emoji: '🏏', name: 'Youth Bat', price: '$49.99', url: 'https://www.amazon.com/s?k=youth+baseball+bat' },
+  { emoji: '⚾', name: 'Youth Bat', price: '$49.99', url: 'https://www.amazon.com/s?k=youth+baseball+bat' },
   { emoji: '🧤', name: 'Batting Gloves', price: '$24.99', url: 'https://www.amazon.com/s?k=youth+batting+gloves' },
   { emoji: '🎯', name: 'Training Gear', price: '$34.99', url: 'https://www.amazon.com/s?k=baseball+training+equipment' },
 ]

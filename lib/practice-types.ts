@@ -70,7 +70,7 @@ export const PRACTICE_CHALLENGES: PracticeChallenge[] = [
     id: 'hit-20',
     title: 'Hit 20 balls off tee',
     description: 'Work on your batting stance',
-    emoji: '🏏',
+    emoji: '⚾',
   },
   {
     id: 'field-15',
@@ -107,7 +107,7 @@ export const DRILL_CHIPS: DrillChip[] = [
   {
     id: 'batting-tee',
     title: 'Batting Tee',
-    emoji: '🏏',
+    emoji: '⚾',
   },
   {
     id: 'catching',
