@@ -149,21 +149,40 @@ export function PracticeTimerModal({ visible, onComplete, onCancel }: PracticeTi
 
             <View style={styles.section}>
               <Text style={styles.label}>Pick a Challenge (optional)</Text>
-              {PRACTICE_CHALLENGES.slice(0, 3).map(challenge => (
-                <TouchableOpacity
-                  key={challenge.id}
-                  onPress={() => setSelectedChallenge(
-                    selectedChallenge === challenge.id ? undefined : challenge.id
-                  )}
-                  style={[
-                    styles.challengeCard,
-                    selectedChallenge === challenge.id && styles.challengeCardActive
-                  ]}
-                >
-                  <AppIcon name={challenge.icon} size={32} color={selectedChallenge === challenge.id ? '#10b981' : '#64748b'} />
-                  <Text style={styles.challengeTitle}>{challenge.title}</Text>
-                </TouchableOpacity>
-              ))}
+              {PRACTICE_CHALLENGES.slice(0, 3).map(challenge => {
+                const isActive = selectedChallenge === challenge.id
+                return (
+                  <TouchableOpacity
+                    key={challenge.id}
+                    onPress={() => setSelectedChallenge(
+                      isActive ? undefined : challenge.id
+                    )}
+                    style={[
+                      styles.challengeCard,
+                      isActive && styles.challengeCardActive
+                    ]}
+                  >
+                    <View style={styles.challengeIconWrap}>
+                      <AppIcon
+                        name={challenge.icon}
+                        size={28}
+                        color={isActive ? '#10b981' : '#fff'}
+                      />
+                    </View>
+                    <Text style={[
+                      styles.challengeTitle,
+                      isActive && styles.challengeTitleActive,
+                    ]}>
+                      {challenge.title}
+                    </Text>
+                    {isActive && (
+                      <View style={styles.challengeCheck}>
+                        <Text style={styles.challengeCheckText}>✓</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                )
+              })}
             </View>
 
             <TouchableOpacity onPress={handleStart} style={styles.startButton}>
@@ -322,22 +341,47 @@ const styles = StyleSheet.create({
   challengeCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
     borderRadius: 12,
     backgroundColor: 'rgba(255,255,255,0.2)',
     gap: 12,
+    borderWidth: 2,
+    borderColor: 'transparent',
   },
   challengeCardActive: {
     backgroundColor: '#fff',
+    borderColor: '#10b981',
   },
-  challengeEmoji: {
-    fontSize: 32,
+  challengeIconWrap: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
   },
   challengeTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: '#fff',
     flex: 1,
+  },
+  challengeTitleActive: {
+    color: '#10b981',
+  },
+  challengeCheck: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#10b981',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  challengeCheckText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '800',
   },
   startButton: {
     backgroundColor: '#fff',

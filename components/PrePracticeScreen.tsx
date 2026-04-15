@@ -93,13 +93,12 @@ export default function PrePracticeScreen({
                   selectedChallenge === challenge.id && styles.challengeCardSelected,
                 ]}
               >
-                <View style={styles.challengeIconWrap}>
-                  <AppIcon
-                    name={challenge.icon}
-                    size={28}
-                    color={selectedChallenge === challenge.id ? '#10b981' : '#fff'}
-                  />
-                </View>
+                <AppIcon
+                  name={challenge.icon}
+                  size={30}
+                  color={selectedChallenge === challenge.id ? '#10b981' : '#fff'}
+                  style={styles.challengeIconWrap}
+                />
                 <View style={styles.challengeInfo}>
                   <Text
                     style={[
@@ -146,7 +145,7 @@ export default function PrePracticeScreen({
               >
                 <AppIcon
                   name={drill.icon}
-                  size={16}
+                  size={18}
                   color={selectedDrills.includes(drill.id) ? '#10b981' : '#fff'}
                 />
                 <Text
@@ -298,6 +297,7 @@ const styles = StyleSheet.create({
     height: 32,
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
   },
   challengeInfo: {
     flex: 1,

@@ -37,7 +37,19 @@ export function AppIcon({ name, size = 24, color = '#1e293b', style }: AppIconPr
   })()
 
   return (
-    <View style={[{ alignItems: 'center', justifyContent: 'center' }, style]} accessibilityElementsHidden>
+    <View
+      style={[
+        {
+          width: size,
+          height: size,
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+        },
+        style,
+      ]}
+      accessibilityElementsHidden
+    >
       {icon}
     </View>
   )
