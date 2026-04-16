@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
 import {
   View,
   Text,
@@ -20,8 +20,9 @@ export function QuickPracticeModal({ visible, onComplete, onCancel }: QuickPract
   const [phase, setPhase] = useState<'setup' | 'active' | 'complete'>('setup')
   const [duration, setDuration] = useState<PracticeDuration>(15)
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
+  const [timerRunning, setTimerRunning] = useState(false)
   const [showEarlyFinishModal, setShowEarlyFinishModal] = useState(false)
-  
+
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const confettiScale = useRef(new Animated.Value(0)).current
 
@@ -36,74 +37,87 @@ export function QuickPracticeModal({ visible, onComplete, onCancel }: QuickPract
     return `${mins}:${secs.toString().padStart(2, '0')}`
   }
 
+  const resetAll = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current)
+    timerRef.current = null
+    setPhase('setup')
+    setElapsedSeconds(0)
+    setTimerRunning(false)
+    setShowEarlyFinishModal(false)
+    confettiScale.setValue(0)
+  }, [])
+
   // Reset when modal becomes visible
   useEffect(() => {
-    if (visible) {
-      setPhase('setup')
-      setElapsedSeconds(0)
-      confettiScale.setValue(0)
-    }
+    if (visible) resetAll()
   }, [visible])
 
+  // Timer — driven by timerRunning, not phase
   useEffect(() => {
-    if (phase === 'active') {
+    if (timerRunning) {
       timerRef.current = setInterval(() => {
-        setElapsedSeconds(prev => prev + 1)
+        setElapsedSeconds(prev => {
+          const next = prev + 1
+          if (next >= targetSeconds) {
+            clearInterval(timerRef.current!)
+            timerRef.current = null
+            setTimerRunning(false)
+            setPhase('complete')
+            Animated.spring(confettiScale, { toValue: 1, damping: 10, stiffness: 120, useNativeDriver: true }).start()
+          }
+          return next
+        })
       }, 1000)
+    } else {
+      if (timerRef.current) {
+        clearInterval(timerRef.current)
+        timerRef.current = null
+      }
     }
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current)
+      if (timerRef.current) {
+        clearInterval(timerRef.current)
+        timerRef.current = null
+      }
     }
-  }, [phase])
-
-  // Animate confetti on complete phase
-  useEffect(() => {
-    if (phase === 'complete') {
-      Animated.spring(confettiScale, {
-        toValue: 1,
-        damping: 10,
-        stiffness: 120,
-        useNativeDriver: true,
-      }).start()
-    }
-  }, [phase])
+  }, [timerRunning, targetSeconds])
 
   const handleStart = () => {
-    setPhase('active')
     setElapsedSeconds(0)
+    setPhase('active')
+    setTimerRunning(true)
   }
 
   const handleFinish = () => {
-    if (timerRef.current) clearInterval(timerRef.current)
-    
-    if (!isComplete) {
-      setShowEarlyFinishModal(true)
-    } else {
+    if (isComplete) {
+      setTimerRunning(false)
       setPhase('complete')
+      Animated.spring(confettiScale, { toValue: 1, damping: 10, stiffness: 120, useNativeDriver: true }).start()
+    } else {
+      setTimerRunning(false)
+      setShowEarlyFinishModal(true)
     }
-  }
-
-  const handleEarlyFinish = () => {
-    setShowEarlyFinishModal(false)
-    setPhase('complete')
   }
 
   const handleKeepPracticing = () => {
     setShowEarlyFinishModal(false)
-    setPhase('active')
+    setTimerRunning(true) // fresh interval since timerRunning was false
+  }
+
+  const handleEarlyFinish = () => {
+    setShowEarlyFinishModal(false)
+    setTimerRunning(false)
+    setPhase('complete')
+    Animated.spring(confettiScale, { toValue: 1, damping: 10, stiffness: 120, useNativeDriver: true }).start()
   }
 
   const handleDone = () => {
+    resetAll()
     onComplete()
-    setPhase('setup')
-    setElapsedSeconds(0)
   }
 
   const handleCancelModal = () => {
-    if (timerRef.current) clearInterval(timerRef.current)
-    setPhase('setup')
-    setElapsedSeconds(0)
-    setShowEarlyFinishModal(false)
+    resetAll()
     onCancel()
   }
 
@@ -113,12 +127,13 @@ export function QuickPracticeModal({ visible, onComplete, onCancel }: QuickPract
     <Modal visible={visible} animationType="slide" transparent={false}>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
-          {/* Setup Phase */}
+
+          {/* ── Setup ── */}
           {phase === 'setup' && (
             <View style={styles.setupContainer}>
               <Text style={styles.title}>Quick Practice ⚡</Text>
               <Text style={styles.subtitle}>Set duration and start</Text>
-              
+
               <View style={styles.durationRow}>
                 {([10, 15, 20, 30] as PracticeDuration[]).map(mins => (
                   <TouchableOpacity
@@ -142,11 +157,11 @@ export function QuickPracticeModal({ visible, onComplete, onCancel }: QuickPract
             </View>
           )}
 
-          {/* Active Phase */}
+          {/* ── Active ── */}
           {phase === 'active' && (
             <View style={styles.activeContainer}>
               <Text style={styles.activeTitle}>Practice In Progress 🔥</Text>
-              
+
               <View style={styles.timerContainer}>
                 <Text style={styles.timerText}>{formatTime(remainingSeconds)}</Text>
                 <Text style={styles.timerLabel}>{isComplete ? 'Time Complete!' : 'Time Remaining'}</Text>
@@ -154,27 +169,26 @@ export function QuickPracticeModal({ visible, onComplete, onCancel }: QuickPract
 
               <View style={styles.progressBarContainer}>
                 <View style={styles.progressBar}>
-                  <View style={[styles.progressFill, { width: `${progress}%` }]} />
+                  <View style={[styles.progressFill, { width: `${progress}%` as any }]} />
                 </View>
                 <Text style={styles.progressText}>{Math.round(progress)}%</Text>
               </View>
 
-              <TouchableOpacity 
-                onPress={handleFinish} 
+              <TouchableOpacity
+                onPress={handleFinish}
                 style={[styles.finishButton, isComplete && styles.finishButtonComplete]}
               >
                 <Text style={styles.finishButtonText}>
-                  {isComplete ? "Nice work! 🎉" : 'Finish Practice'}
+                  {isComplete ? 'Nice work! 🎉' : 'Finish Practice'}
                 </Text>
               </TouchableOpacity>
-
               <TouchableOpacity onPress={handleCancelModal} style={styles.cancelButton}>
                 <Text style={styles.cancelButtonText}>Cancel</Text>
               </TouchableOpacity>
             </View>
           )}
 
-          {/* Complete Phase */}
+          {/* ── Complete ── */}
           {phase === 'complete' && (
             <View style={styles.completeContainer}>
               <Animated.Text style={[styles.confettiRow, { transform: [{ scale: confettiScale }] }]}>
@@ -182,7 +196,7 @@ export function QuickPracticeModal({ visible, onComplete, onCancel }: QuickPract
               </Animated.Text>
               <Text style={styles.completeTitle}>Practice Complete!</Text>
               <Text style={styles.completeSubtitle}>Nice work — you showed up 💪</Text>
-              
+
               <View style={styles.completeStatsCard}>
                 <View style={styles.completeStatRow}>
                   <View style={styles.completeStatItem}>
@@ -191,7 +205,7 @@ export function QuickPracticeModal({ visible, onComplete, onCancel }: QuickPract
                   </View>
                   <View style={styles.completeStatItem}>
                     <Text style={styles.completeStatLabel}>⏱ Time</Text>
-                    <Text style={styles.completeStatValueSmall}>{Math.round(elapsedSeconds / 60)} min</Text>
+                    <Text style={styles.completeStatValueSmall}>{Math.max(1, Math.round(elapsedSeconds / 60))} min</Text>
                   </View>
                 </View>
               </View>
@@ -204,7 +218,7 @@ export function QuickPracticeModal({ visible, onComplete, onCancel }: QuickPract
             </View>
           )}
 
-          {/* Early Finish Modal */}
+          {/* ── Early Finish Overlay ── */}
           {showEarlyFinishModal && (
             <View style={styles.earlyFinishOverlay}>
               <View style={styles.earlyFinishModal}>
@@ -224,6 +238,7 @@ export function QuickPracticeModal({ visible, onComplete, onCancel }: QuickPract
               </View>
             </View>
           )}
+
         </View>
       </SafeAreaView>
     </Modal>
@@ -231,276 +246,53 @@ export function QuickPracticeModal({ visible, onComplete, onCancel }: QuickPract
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#1e40af',
-  },
-  container: {
-    flex: 1,
-    padding: 20,
-    justifyContent: 'center',
-  },
-  setupContainer: {
-    gap: 24,
-  },
-  activeContainer: {
-    alignItems: 'center',
-    gap: 32,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#fff',
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: 'rgba(255,255,255,0.8)',
-    textAlign: 'center',
-  },
-  activeTitle: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#fff',
-  },
-  durationRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 12,
-  },
-  durationButton: {
-    flex: 1,
-    paddingVertical: 18,
-    borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center',
-  },
-  durationButtonActive: {
-    backgroundColor: '#fff',
-  },
-  durationText: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  durationTextActive: {
-    color: '#1e40af',
-  },
-  startButton: {
-    backgroundColor: '#fff',
-    paddingVertical: 20,
-    borderRadius: 18,
-    alignItems: 'center',
-    marginTop: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
-  },
-  startButtonText: {
-    fontSize: 19,
-    fontWeight: '800',
-    color: '#1e40af',
-  },
-  cancelButton: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    paddingVertical: 16,
-    borderRadius: 14,
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  timerContainer: {
-    alignItems: 'center',
-  },
-  timerText: {
-    fontSize: 72,
-    fontWeight: '800',
-    color: '#fff',
-  },
-  timerLabel: {
-    fontSize: 15,
-    color: 'rgba(255,255,255,0.8)',
-    marginTop: 8,
-  },
-  progressBarContainer: {
-    width: '100%',
-    alignItems: 'center',
-    gap: 12,
-  },
-  progressBar: {
-    width: '100%',
-    height: 12,
-    backgroundColor: 'rgba(255,255,255,0.3)',
-    borderRadius: 6,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#fff',
-    borderRadius: 6,
-  },
-  progressText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  finishButton: {
-    backgroundColor: '#fff',
-    paddingVertical: 20,
-    paddingHorizontal: 40,
-    borderRadius: 18,
-    width: '100%',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
-  },
-  finishButtonComplete: {
-    backgroundColor: '#fbbf24',
-  },
-  finishButtonText: {
-    fontSize: 19,
-    fontWeight: '800',
-    color: '#1e40af',
-  },
-  earlyFinishOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  earlyFinishModal: {
-    backgroundColor: '#fff',
-    borderRadius: 24,
-    padding: 32,
-    width: '100%',
-    maxWidth: 360,
-    alignItems: 'center',
-  },
-  earlyFinishEmoji: {
-    fontSize: 56,
-    marginBottom: 16,
-  },
-  earlyFinishTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#0f172a',
-    marginBottom: 8,
-  },
-  earlyFinishSubtitle: {
-    fontSize: 15,
-    color: '#64748b',
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  earlyFinishButtons: {
-    width: '100%',
-    gap: 12,
-  },
-  keepButton: {
-    backgroundColor: '#22c55e',
-    paddingVertical: 16,
-    borderRadius: 14,
-    alignItems: 'center',
-  },
-  keepButtonText: {
-    fontSize: 17,
-    fontWeight: '800',
-    color: '#fff',
-  },
-  endButton: {
-    backgroundColor: '#f1f5f9',
-    paddingVertical: 16,
-    borderRadius: 14,
-    alignItems: 'center',
-  },
-  endButtonText: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#475569',
-  },
-  completeContainer: {
-    alignItems: 'center',
-    gap: 16,
-  },
-  confettiRow: {
-    fontSize: 28,
-    letterSpacing: 4,
-    marginBottom: 4,
-  },
-  completeTitle: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#fff',
-  },
-  completeSubtitle: {
-    fontSize: 18,
-    color: 'rgba(255,255,255,0.9)',
-  },
-  completeStatsCard: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    paddingHorizontal: 32,
-    paddingVertical: 20,
-    borderRadius: 20,
-    width: '100%',
-  },
-  completeStatRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  completeStatItem: {
-    alignItems: 'center',
-    gap: 4,
-  },
-  completeStatLabel: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.8)',
-  },
-  completeStatValue: {
-    fontSize: 48,
-    fontWeight: '800',
-    color: '#fff',
-  },
-  completeStatValueSmall: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#fff',
-  },
-  keepGoingText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: 'rgba(255,255,255,0.8)',
-    textAlign: 'center',
-  },
-  doneButton: {
-    backgroundColor: '#fff',
-    paddingVertical: 20,
-    paddingHorizontal: 60,
-    borderRadius: 18,
-    width: '100%',
-    alignItems: 'center',
-    marginTop: 8,
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
-  },
-  doneButtonText: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#1e40af',
-  },
+  safeArea: { flex: 1, backgroundColor: '#1e40af' },
+  container: { flex: 1, padding: 20, justifyContent: 'center' },
+  setupContainer: { gap: 24 },
+  activeContainer: { alignItems: 'center', gap: 32 },
+  completeContainer: { alignItems: 'center', gap: 16 },
+  title: { fontSize: 32, fontWeight: '800', color: '#fff', textAlign: 'center' },
+  subtitle: { fontSize: 16, color: 'rgba(255,255,255,0.8)', textAlign: 'center' },
+  activeTitle: { fontSize: 24, fontWeight: '800', color: '#fff' },
+  durationRow: { flexDirection: 'row', gap: 10, marginTop: 12 },
+  durationButton: { flex: 1, paddingVertical: 18, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center' },
+  durationButtonActive: { backgroundColor: '#fff' },
+  durationText: { fontSize: 17, fontWeight: '700', color: '#fff' },
+  durationTextActive: { color: '#1e40af' },
+  startButton: { backgroundColor: '#fff', paddingVertical: 20, borderRadius: 18, alignItems: 'center', marginTop: 16, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 6 },
+  startButtonText: { fontSize: 19, fontWeight: '800', color: '#1e40af' },
+  cancelButton: { backgroundColor: 'rgba(255,255,255,0.1)', paddingVertical: 16, borderRadius: 14, alignItems: 'center' },
+  cancelButtonText: { fontSize: 16, fontWeight: '700', color: '#fff' },
+  timerContainer: { alignItems: 'center' },
+  timerText: { fontSize: 72, fontWeight: '800', color: '#fff' },
+  timerLabel: { fontSize: 15, color: 'rgba(255,255,255,0.8)', marginTop: 8 },
+  progressBarContainer: { width: '100%', alignItems: 'center', gap: 12 },
+  progressBar: { width: '100%', height: 12, backgroundColor: 'rgba(255,255,255,0.3)', borderRadius: 6, overflow: 'hidden' },
+  progressFill: { height: '100%', backgroundColor: '#fff', borderRadius: 6 },
+  progressText: { fontSize: 18, fontWeight: '700', color: '#fff' },
+  finishButton: { backgroundColor: '#fff', paddingVertical: 20, paddingHorizontal: 40, borderRadius: 18, width: '100%', alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 6 },
+  finishButtonComplete: { backgroundColor: '#fbbf24' },
+  finishButtonText: { fontSize: 19, fontWeight: '800', color: '#1e40af' },
+  confettiRow: { fontSize: 28, letterSpacing: 4, marginBottom: 4 },
+  completeTitle: { fontSize: 32, fontWeight: '800', color: '#fff' },
+  completeSubtitle: { fontSize: 18, color: 'rgba(255,255,255,0.9)' },
+  completeStatsCard: { backgroundColor: 'rgba(255,255,255,0.1)', paddingHorizontal: 32, paddingVertical: 20, borderRadius: 20, width: '100%' },
+  completeStatRow: { flexDirection: 'row', justifyContent: 'space-around' },
+  completeStatItem: { alignItems: 'center', gap: 4 },
+  completeStatLabel: { fontSize: 14, color: 'rgba(255,255,255,0.8)' },
+  completeStatValue: { fontSize: 48, fontWeight: '800', color: '#fff' },
+  completeStatValueSmall: { fontSize: 32, fontWeight: '800', color: '#fff' },
+  keepGoingText: { fontSize: 14, fontWeight: '600', color: 'rgba(255,255,255,0.8)', textAlign: 'center' },
+  doneButton: { backgroundColor: '#fff', paddingVertical: 20, paddingHorizontal: 60, borderRadius: 18, width: '100%', alignItems: 'center', marginTop: 8, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 6 },
+  doneButtonText: { fontSize: 20, fontWeight: '800', color: '#1e40af' },
+  earlyFinishOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', alignItems: 'center', padding: 24, zIndex: 200 },
+  earlyFinishModal: { backgroundColor: '#fff', borderRadius: 24, padding: 32, width: '100%', maxWidth: 360, alignItems: 'center' },
+  earlyFinishEmoji: { fontSize: 56, marginBottom: 16 },
+  earlyFinishTitle: { fontSize: 22, fontWeight: '800', color: '#0f172a', marginBottom: 8 },
+  earlyFinishSubtitle: { fontSize: 15, color: '#64748b', textAlign: 'center', marginBottom: 24 },
+  earlyFinishButtons: { width: '100%', gap: 12 },
+  keepButton: { backgroundColor: '#22c55e', paddingVertical: 16, borderRadius: 14, alignItems: 'center' },
+  keepButtonText: { fontSize: 17, fontWeight: '800', color: '#fff' },
+  endButton: { backgroundColor: '#f1f5f9', paddingVertical: 16, borderRadius: 14, alignItems: 'center' },
+  endButtonText: { fontSize: 17, fontWeight: '700', color: '#475569' },
 })
