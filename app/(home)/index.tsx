@@ -141,7 +141,7 @@ export default function HomeScreen() {
     setLoggedThisSession(true)
 
     // Reset animation values so they replay
-    successScale.setValue(0)
+    successScale.setValue(0.8)
     confettiOpacity.setValue(0)
 
     if (!result.alreadyLoggedToday) {
@@ -381,7 +381,6 @@ export default function HomeScreen() {
             <Animated.View
               style={[
                 styles.successContainer,
-                { transform: [{ scale: loggedThisSession ? successScale : new Animated.Value(1) }] },
               ]}
             >
               <Text style={styles.successEmoji}>🏆</Text>
