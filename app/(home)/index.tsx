@@ -386,7 +386,7 @@ export default function HomeScreen() {
                       onPress={() => handleFeelingSelect(opt.value)}
                       activeOpacity={0.75}
                     >
-                      <AppIcon name={opt.icon} size={24} color={feeling === opt.value ? '#10b981' : '#94a3b8'} />
+                      <AppIcon name={opt.icon} size={24} color={selectedFeeling === opt.value ? '#10b981' : '#94a3b8'} />
                       <Text style={styles.feelingLabel}>{opt.label}</Text>
                     </TouchableOpacity>
                   ))}
