@@ -121,7 +121,8 @@ export default function GoalsScreen() {
 
         {showFeedback && (
           <Animated.View style={[styles.feedbackToast, { opacity: fadeAnim }]}>
-            <Text style={styles.feedbackText}>Perfect. Let's build a plan 🎯</Text>
+            <Text style={styles.feedbackText}>Got it — we'll focus on:</Text>
+            <Text style={styles.feedbackDetail}>✔ Getting them started{'\n'}✔ Giving them a reason to practice</Text>
           </Animated.View>
         )}
       </View>
@@ -289,5 +290,12 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '700',
     color: '#fff',
+    marginBottom: 4,
+  },
+  feedbackDetail: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.9)',
+    lineHeight: 22,
   },
 })

@@ -110,7 +110,7 @@ export default function KidModeScreen() {
         {/* Streak */}
         <View style={styles.streakRow}>
           <Text style={styles.streakText}>
-            {streak > 0 ? `${streak} day streak 🔥` : 'Start your streak today! ⚾'}
+            {streak > 0 ? `🔥 ${streak} day streak — keep it going!` : 'Start your streak today! ⚾'}
           </Text>
         </View>
 
@@ -118,7 +118,7 @@ export default function KidModeScreen() {
         {showSuccess && (
           <Animated.View style={[styles.successBanner, { opacity: successOpacity }]}>
             <Text style={styles.successTitle}>Nice work! 💪</Text>
-            <Text style={styles.successPoints}>+10 points</Text>
+            <Text style={styles.successPoints}>🔥 +10 points</Text>
           </Animated.View>
         )}
 
@@ -164,13 +164,13 @@ export default function KidModeScreen() {
           >
             <Text style={styles.practiceButtonEmoji}>⚾</Text>
             <Text style={styles.practiceButtonText}>
-              {loggedToday ? 'Practice Done Today! ✅' : 'Start Practice ⚾'}
+              {loggedToday ? 'Practice Done Today ✅' : 'Start Practice ⚾'}
             </Text>
           </TouchableOpacity>
         )}
 
         {loggedToday && !rewardComplete && (
-          <Text style={styles.doneSubtext}>Come back tomorrow to keep the streak going! 🔥</Text>
+          <Text style={styles.doneSubtext}>Come back tomorrow to keep the streak alive! 🔥</Text>
         )}
 
         {/* Teammates leaderboard */}

@@ -46,9 +46,9 @@ export default function PaywallScreen() {
       <SafeAreaView style={styles.safe}>
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           {/* Header */}
-          <Text style={styles.headline}>They're ready to start — don't lose momentum ⚾</Text>
+          <Text style={styles.headline}>Don't let the momentum stop ⚾</Text>
           <Text style={styles.subhead}>
-            Set their first reward in under 30 seconds
+            Most kids increase practice in the first week
           </Text>
 
           {/* Dynamic stats */}
@@ -110,11 +110,11 @@ export default function PaywallScreen() {
           {/* Value stack */}
           <View style={styles.valueCard}>
             {[
-              'Daily practice tracking',
-              'Reward system',
-              'Progress tracking',
-              'Motivation tools',
+              'Unlimited practice tracking',
+              'Reward system that motivates',
+              'Streak tracking & momentum',
               'Leaderboard + teammates',
+              'Parent dashboard & insights',
             ].map(feature => (
               <View key={feature} style={styles.featureRow}>
                 <Text style={styles.featureCheck}>✓</Text>
@@ -130,7 +130,7 @@ export default function PaywallScreen() {
             activeOpacity={0.85}
           >
             <Text style={styles.primaryButtonText}>
-              {selectedPlan === 'yearly' ? 'Start Free Trial (Save 37%)' : 'Continue Progress →'}
+              {selectedPlan === 'yearly' ? 'Start Free Trial — Save 37%' : 'Start Free Trial →'}
             </Text>
           </TouchableOpacity>
 

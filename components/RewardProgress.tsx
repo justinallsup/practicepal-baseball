@@ -49,10 +49,17 @@ export default function RewardProgress({ onAddReward }: Props) {
   // In progress
   const progress = getRewardProgress()
   const ratio = Math.min(progress / reward.targetValue, 1.0)
+  const remaining = Math.max(0, reward.targetValue - progress)
   const progressLabel =
     reward.targetType === 'streak_goal'
       ? `${progress} / ${reward.targetValue} streak days`
       : `This week: ${progress} / ${reward.targetValue} sessions`
+
+  const almostThereText = remaining === 1
+    ? `Only 1 more to unlock ${reward.rewardName}! 🎯`
+    : remaining <= 2
+    ? `Almost there — ${remaining} more to earn ${reward.rewardName}!`
+    : null
 
   return (
     <View style={styles.card}>
@@ -61,6 +68,9 @@ export default function RewardProgress({ onAddReward }: Props) {
         <View style={[styles.barFill, { width: `${Math.round(ratio * 100)}%` as any }]} />
       </View>
       <Text style={styles.progressLabel}>{progressLabel}</Text>
+      {almostThereText && (
+        <Text style={styles.almostThereText}>{almostThereText}</Text>
+      )}
     </View>
   )
 }
@@ -123,6 +133,12 @@ const styles = StyleSheet.create({
     color: '#64748b',
     marginTop: 6,
     fontWeight: '500',
+  },
+  almostThereText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#d97706',
+    marginTop: 4,
   },
   earnedCard: {
     alignItems: 'center',

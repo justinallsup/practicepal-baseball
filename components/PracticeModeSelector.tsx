@@ -29,19 +29,22 @@ export function PracticeModeSelector({
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.container}>
             <View style={styles.modal}>
-              <Text style={styles.title}>Start Practice</Text>
+              <Text style={styles.title}>🚀 Start Practice</Text>
               <Text style={styles.subtitle}>Choose how to track this session</Text>
 
               <TouchableOpacity
-                style={styles.optionCard}
+                style={[styles.optionCard, styles.optionCardRecommended]}
                 onPress={onSelectKidMode}
                 activeOpacity={0.85}
               >
-                <Text style={styles.optionEmoji}>⚾</Text>
+                <View style={styles.recommendedBadge}>
+                  <Text style={styles.recommendedText}>⭐ Recommended</Text>
+                </View>
+                <Text style={styles.optionEmoji}>🎮</Text>
                 <View style={styles.optionContent}>
-                  <Text style={styles.optionTitle}>Kid View</Text>
+                  <Text style={styles.optionTitle}>Kid Mode</Text>
                   <Text style={styles.optionDescription}>
-                    Full experience with timer, challenges, and rewards
+                    Timer • Challenges • Rewards
                   </Text>
                 </View>
                 <Text style={styles.arrow}>→</Text>
@@ -52,11 +55,11 @@ export function PracticeModeSelector({
                 onPress={onSelectQuickMode}
                 activeOpacity={0.85}
               >
-                <Text style={styles.optionEmoji}>⏱️</Text>
+                <Text style={styles.optionEmoji}>⚡</Text>
                 <View style={styles.optionContent}>
                   <Text style={styles.optionTitle}>Quick Mode</Text>
                   <Text style={styles.optionDescription}>
-                    Simple timer — start practicing immediately
+                    Just track time
                   </Text>
                 </View>
                 <Text style={styles.arrow}>→</Text>
@@ -117,7 +120,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#f8fafc',
     borderRadius: 18,
-    padding: 20,
+    padding: 22,
     marginBottom: 14,
     borderWidth: 2,
     borderColor: '#e2e8f0',
@@ -127,6 +130,31 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
+    position: 'relative' as const,
+  },
+  optionCardRecommended: {
+    backgroundColor: '#eff6ff',
+    borderColor: '#1e40af',
+    borderWidth: 2.5,
+    shadowColor: '#1e40af',
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+  },
+  recommendedBadge: {
+    position: 'absolute' as const,
+    top: -10,
+    right: 14,
+    backgroundColor: '#1e40af',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  recommendedText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#fff',
   },
   optionEmoji: {
     fontSize: 36,

@@ -13,22 +13,22 @@ import { useStore } from '../../lib/store'
 import { ProgressBar } from '../../components/ProgressBar'
 
 const QUICK_WINS = [
-  { label: 'Extra Screen Time 🎮', value: 'Extra Screen Time', practices: 1 },
-  { label: 'Stay Up Late ⏰', value: 'Stay Up Late', practices: 2 },
-  { label: 'Pick Dinner 🍕', value: 'Pick Dinner', practices: 3 },
+  { label: 'Extra Screen Time 🎮', value: 'Extra Screen Time', practices: 1, tag: '⚡ Quick win' },
+  { label: 'Stay Up Late ⏰', value: 'Stay Up Late', practices: 2, tag: '🔥 Popular' },
+  { label: 'Pick Dinner 🍕', value: 'Pick Dinner', practices: 3, tag: '💪 Fan favorite' },
 ]
 
 const MID_TIER = [
-  { label: 'Batting Gloves 🧤', value: 'Batting Gloves', practices: 5 },
-  { label: 'Arm Sleeve 💪', value: 'Arm Sleeve', practices: 7 },
-  { label: 'Baseball Card Pack ⚾', value: 'Baseball Card Pack', practices: 10 },
+  { label: 'Batting Gloves 🧤', value: 'Batting Gloves', practices: 5, tag: '🔥 Popular' },
+  { label: 'Arm Sleeve 💪', value: 'Arm Sleeve', practices: 7, tag: '⚡ Quick win' },
+  { label: 'Baseball Card Pack ⚾', value: 'Baseball Card Pack', practices: 10, tag: '💪 Fan favorite' },
 ]
 
 const BIG_GOALS = [
-  { label: 'New Bat 🔥', value: 'New Bat', practices: 15 },
-  { label: 'New Glove / Mitt 🧤', value: 'New Glove', practices: 20 },
-  { label: 'Cleats 👟', value: 'Cleats', practices: 25 },
-  { label: 'Private Lesson / Cage Session 🎯', value: 'Private Lesson', practices: 30 },
+  { label: 'New Bat 🔥', value: 'New Bat', practices: 15, tag: '🔥 Popular' },
+  { label: 'New Glove / Mitt 🧤', value: 'New Glove', practices: 20, tag: '💪 Fan favorite' },
+  { label: 'Cleats 👟', value: 'Cleats', practices: 25, tag: '' },
+  { label: 'Private Lesson / Cage Session 🎯', value: 'Private Lesson', practices: 30, tag: '⭐ Big goal' },
 ]
 
 export default function RewardPickScreen() {
@@ -69,16 +69,16 @@ export default function RewardPickScreen() {
                   key={reward.value}
                   style={[
                     styles.rewardCard,
-                    idx === 0 && styles.rewardCardPopular,
+                    idx === 1 && styles.rewardCardPopular,
                   ]}
                   onPress={() => handleSelect(reward.value, reward.practices)}
                   activeOpacity={1}
                 >
-                  {idx === 0 && (
-                    <View style={styles.popularBadge}>
-                      <Text style={styles.popularText}>Most Popular</Text>
+                  {reward.tag ? (
+                    <View style={[styles.tagBadge, idx === 1 && styles.tagBadgePopular]}>
+                      <Text style={styles.tagText}>{reward.tag}</Text>
                     </View>
-                  )}
+                  ) : null}
                   <Text style={styles.rewardLabel}>{reward.label}</Text>
                   <Text style={styles.rewardPractices}>
                     Earn in {reward.practices} {reward.practices === 1 ? 'practice' : 'practices'}
@@ -98,6 +98,11 @@ export default function RewardPickScreen() {
                   onPress={() => handleSelect(reward.value, reward.practices)}
                   activeOpacity={1}
                 >
+                  {reward.tag ? (
+                    <View style={styles.tagBadge}>
+                      <Text style={styles.tagText}>{reward.tag}</Text>
+                    </View>
+                  ) : null}
                   <Text style={styles.rewardLabel}>{reward.label}</Text>
                   <Text style={styles.rewardPractices}>
                     Earn in {reward.practices} practices
@@ -117,6 +122,11 @@ export default function RewardPickScreen() {
                   onPress={() => handleSelect(reward.value, reward.practices)}
                   activeOpacity={1}
                 >
+                  {reward.tag ? (
+                    <View style={styles.tagBadge}>
+                      <Text style={styles.tagText}>{reward.tag}</Text>
+                    </View>
+                  ) : null}
                   <Text style={styles.rewardLabel}>{reward.label}</Text>
                   <Text style={styles.rewardPractices}>
                     Earn in {reward.practices} practices
@@ -274,6 +284,26 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: '#1e40af',
+  },
+  tagBadge: {
+    position: 'absolute',
+    top: -10,
+    right: 12,
+    backgroundColor: '#eff6ff',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+  },
+  tagBadgePopular: {
+    backgroundColor: '#fef3c7',
+    borderColor: '#fbbf24',
+  },
+  tagText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#475569',
   },
   customButton: {
     backgroundColor: '#eff6ff',

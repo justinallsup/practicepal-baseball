@@ -60,6 +60,8 @@ export default function ParentScreen() {
   const weekLogs = getWeekLogs()
   const streak = getCurrentStreak()
   const weekPractices = new Set(weekLogs.map(l => l.date)).size
+  const reward = useStore.getState().reward
+  const rewardProgress = reward ? useStore.getState().getRewardProgress() : 0
 
   // Weekly points (approximation: 10 pts per practice this week)
   const weekPoints = weekPractices * 10
@@ -143,6 +145,25 @@ export default function ParentScreen() {
           )}
         </View>
 
+        {/* Weekly Progress Highlights */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Weekly Progress</Text>
+          <View style={styles.highlightList}>
+            <Text style={styles.highlightItem}>✔ Practiced {weekPractices}x this week</Text>
+            {streak > 0 && <Text style={styles.highlightItem}>✔ Streak: {streak} day{streak !== 1 ? 's' : ''}</Text>}
+            {reward && rewardProgress > 0 && (
+              <Text style={styles.highlightItem}>
+                ✔ {reward.targetValue - rewardProgress <= 2 ? '1 reward almost earned' : `${rewardProgress}/${reward.targetValue} toward ${reward.rewardName}`}
+              </Text>
+            )}
+          </View>
+        </View>
+
+        {/* Insight Box */}
+        <View style={styles.insightBox}>
+          <Text style={styles.insightText}>💡 Kids who practice 3x/week improve the fastest</Text>
+        </View>
+
         {/* This Week Summary */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>This Week</Text>
@@ -190,7 +211,7 @@ export default function ParentScreen() {
         {/* Invite Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Invite a Teammate</Text>
-          <Text style={styles.inviteSubtext}>+100 points per friend who joins (limited time)</Text>
+          <Text style={styles.inviteSubtext}>Earn +100 points per friend who joins</Text>
           <View style={styles.codeBox}>
             <Text style={styles.codeLabel}>Your invite code:</Text>
             <Text style={styles.codeText}>{inviteCode}</Text>
@@ -255,6 +276,27 @@ const styles = StyleSheet.create({
     color: '#94a3b8',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+  },
+  highlightList: {
+    gap: 6,
+  },
+  highlightItem: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#166534',
+  },
+  insightBox: {
+    backgroundColor: '#eff6ff',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1.5,
+    borderColor: '#bfdbfe',
+  },
+  insightText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1e40af',
+    textAlign: 'center',
   },
   sectionSub: {
     fontSize: 12,

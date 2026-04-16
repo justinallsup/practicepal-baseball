@@ -23,6 +23,22 @@ export default function LeaderboardScreen() {
 
   const loggedToday = hasLoggedToday()
 
+  // Find user's position and gap to next
+  const userIndex = leaderboard.findIndex(e => e.isYou)
+  const userEntry = leaderboard[userIndex]
+  let motivationalCopy = ''
+  if (userIndex > 0 && userEntry) {
+    const above = leaderboard[userIndex - 1]
+    const gap = above.practices - userEntry.practices
+    if (gap <= 1) {
+      motivationalCopy = `You're 1 practice away from ${userIndex === 1 ? '1st' : `${userIndex}${userIndex === 2 ? 'nd' : 'rd'}`} place 👀`
+    } else if (gap <= 3) {
+      motivationalCopy = `Only ${gap} practices to move up — you've got this 💪`
+    }
+  } else if (userIndex === 0) {
+    motivationalCopy = 'You\'re in the lead — keep it up! 🏆'
+  }
+
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -54,10 +70,13 @@ export default function LeaderboardScreen() {
         </View>
 
         <View style={styles.footer}>
+          {motivationalCopy ? (
+            <Text style={styles.motivationalText}>{motivationalCopy}</Text>
+          ) : null}
           {loggedToday ? (
-            <Text style={styles.footerText}>Great work today! Keep it up ⭐</Text>
+            <Text style={styles.footerText}>Nice work today — keep the streak alive ⭐</Text>
           ) : (
-            <Text style={styles.footerText}>Keep it up — log practice today ⚾</Text>
+            <Text style={styles.footerText}>Log practice today to climb the board ⚾</Text>
           )}
         </View>
 
@@ -148,6 +167,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1e40af',
     textAlign: 'center',
+  },
+  motivationalText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#d97706',
+    textAlign: 'center',
+    marginBottom: 4,
   },
   refreshBtn: {
     alignItems: 'center',

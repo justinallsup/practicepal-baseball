@@ -326,9 +326,9 @@ export default function HomeScreen() {
           /* Paywall locked state */
           <View style={styles.lockedContainer}>
             <Text style={styles.lockedEmoji}>🔒</Text>
-            <Text style={styles.lockedTitle}>Subscribe to keep your streak alive</Text>
+            <Text style={styles.lockedTitle}>Keep the momentum going</Text>
             <Text style={styles.lockedSub}>
-              You've been crushing it — don't let your streak reset
+              Don't let the streak reset — subscribe to keep practicing
             </Text>
             <TouchableOpacity
               style={styles.paywallButton}
@@ -352,10 +352,10 @@ export default function HomeScreen() {
                 { transform: [{ scale: loggedThisSession ? successScale : new Animated.Value(1) }] },
               ]}
             >
-              <Text style={styles.successEmoji}>✅</Text>
-              <Text style={styles.successTitle}>Practice Logged!</Text>
+              <Text style={styles.successEmoji}>🏆</Text>
+              <Text style={styles.successTitle}>Practice Complete!</Text>
               <Text style={styles.successStreak}>
-                {child?.name ?? 'Player'} is on a {newStreak}-day streak 🔥
+                🔥 {newStreak}-day streak — keep it alive!
               </Text>
               {newStreak >= 2 && (
                 <View style={styles.motivationBanner}>
@@ -366,7 +366,9 @@ export default function HomeScreen() {
               )}
               {loggedThisSession && reward && !rewardEarned && (
                 <Text style={styles.rewardNudge}>
-                  1 step closer to {reward.rewardName} 🎯
+                  {remainingPractices === 1
+                    ? `Only 1 more to earn ${reward.rewardName}! 🎯`
+                    : `${remainingPractices} more to earn ${reward.rewardName} 🎯`}
                 </Text>
               )}
               {loggedThisSession && (
@@ -408,12 +410,13 @@ export default function HomeScreen() {
               <View style={styles.nextStepDivider} />
               <Text style={styles.nextStepHeading}>Next step:</Text>
               <Text style={styles.nextStepText}>
-                Log practice again tomorrow to keep the streak alive 🔥
+                Come back tomorrow to keep the streak alive 🔥
               </Text>
               {reward && !rewardEarned && remainingPractices !== null && remainingPractices > 0 && (
                 <Text style={styles.nextStepReward}>
-                  {remainingPractices} more practice{remainingPractices === 1 ? '' : 's'} to earn{' '}
-                  {reward.rewardName} 🎯
+                  {remainingPractices === 1
+                    ? `Only 1 more practice to earn ${reward.rewardName} 🎯`
+                    : `${remainingPractices} more practice${remainingPractices === 1 ? '' : 's'} to earn ${reward.rewardName} 🎯`}
                 </Text>
               )}
             </View>

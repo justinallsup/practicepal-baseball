@@ -56,10 +56,11 @@ export function PracticeTimerModal({ visible, onComplete, onCancel }: PracticeTi
         setElapsedSeconds(prev => {
           const next = prev + 1
           // Show encouragement at milestones
-          if (next === Math.floor(targetSeconds * 0.25) || 
-              next === Math.floor(targetSeconds * 0.5) || 
-              next === Math.floor(targetSeconds * 0.75)) {
-            showEncouragementMessage()
+          const pct = next / targetSeconds
+          if (Math.abs(pct - 0.5) < 0.01) {
+            showEncouragementMessage('💪 Halfway there — keep going!')
+          } else if (Math.abs(pct - 0.75) < 0.01) {
+            showEncouragementMessage('🔥 Almost done — don\'t stop now!')
           }
           return next
         })
@@ -70,9 +71,9 @@ export function PracticeTimerModal({ visible, onComplete, onCancel }: PracticeTi
     }
   }, [phase, targetSeconds])
 
-  const showEncouragementMessage = () => {
-    const messages = ["Nice! Keep it up! 💪", "You're on fire! 🔥", "Almost there! 🎯"]
-    setEncouragementText(messages[Math.floor(Math.random() * messages.length)])
+  const showEncouragementMessage = (message?: string) => {
+    const messages = ["💪 Halfway there — keep going!", "🔥 Almost done — don't stop now!", "You're on fire! 🎯"]
+    setEncouragementText(message || messages[Math.floor(Math.random() * messages.length)])
     setShowEncouragement(true)
     Animated.sequence([
       Animated.timing(encouragementOpacity, {
@@ -206,7 +207,7 @@ export function PracticeTimerModal({ visible, onComplete, onCancel }: PracticeTi
               </Animated.View>
             )}
 
-            <Text style={styles.activeTitle}>Practice In Progress</Text>
+            <Text style={styles.activeTitle}>Practice In Progress 🔥</Text>
             
             <View style={styles.timerContainer}>
               <Text style={styles.timerText}>{formatTime(remainingSeconds)}</Text>
@@ -245,14 +246,22 @@ export function PracticeTimerModal({ visible, onComplete, onCancel }: PracticeTi
         {/* Complete Phase */}
         {phase === 'complete' && (
           <View style={styles.completeContainer}>
+            <Text style={styles.confettiRow}>🎉 ⭐ 🏆 ⭐ 🎉</Text>
             <AppIcon name="trophy" size={72} color="#fbbf24" />
-            <Text style={styles.completeTitle}>Nice work!</Text>
-            <Text style={styles.completeSubtitle}>You completed practice!</Text>
+            <Text style={styles.completeTitle}>Practice Complete!</Text>
+            <Text style={styles.completeSubtitle}>You crushed it 💪</Text>
             
             <View style={styles.statsCard}>
-              <Text style={styles.statsLabel}>Points Earned</Text>
-              <Text style={styles.statsValue}>+10</Text>
-              <Text style={styles.statsDetail}>{Math.round(elapsedSeconds / 60)} minutes practiced</Text>
+              <View style={styles.statsRow}>
+                <View style={styles.statItem}>
+                  <Text style={styles.statsLabel}>🔥 Points</Text>
+                  <Text style={styles.statsValue}>+10</Text>
+                </View>
+                <View style={styles.statItem}>
+                  <Text style={styles.statsLabel}>⏱ Time</Text>
+                  <Text style={styles.statsValueSmall}>{Math.round(elapsedSeconds / 60)} min</Text>
+                </View>
+              </View>
             </View>
 
             {selectedChallenge && (
@@ -265,8 +274,10 @@ export function PracticeTimerModal({ visible, onComplete, onCancel }: PracticeTi
               </View>
             )}
 
+            <Text style={styles.keepGoingText}>Keep the streak alive — come back tomorrow! 🔥</Text>
+
             <TouchableOpacity onPress={handleDone} style={styles.doneButton}>
-              <Text style={styles.doneButtonText}>Done</Text>
+              <Text style={styles.doneButtonText}>Done 🎯</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -295,7 +306,12 @@ const styles = StyleSheet.create({
   },
   completeContainer: {
     alignItems: 'center',
-    gap: 20,
+    gap: 16,
+  },
+  confettiRow: {
+    fontSize: 28,
+    letterSpacing: 4,
+    marginBottom: 4,
   },
   title: {
     fontSize: 32,
@@ -503,24 +519,42 @@ const styles = StyleSheet.create({
   statsCard: {
     backgroundColor: 'rgba(255,255,255,0.1)',
     paddingHorizontal: 32,
-    paddingVertical: 24,
+    paddingVertical: 20,
     borderRadius: 20,
-    alignItems: 'center',
     width: '100%',
     gap: 8,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  statItem: {
+    alignItems: 'center',
+    gap: 4,
   },
   statsLabel: {
     fontSize: 14,
     color: 'rgba(255,255,255,0.8)',
   },
   statsValue: {
-    fontSize: 56,
+    fontSize: 48,
+    fontWeight: '800',
+    color: '#fff',
+  },
+  statsValueSmall: {
+    fontSize: 32,
     fontWeight: '800',
     color: '#fff',
   },
   statsDetail: {
     fontSize: 14,
     color: 'rgba(255,255,255,0.7)',
+  },
+  keepGoingText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.8)',
+    textAlign: 'center',
   },
   challengeCompleteCard: {
     backgroundColor: '#fbbf24',

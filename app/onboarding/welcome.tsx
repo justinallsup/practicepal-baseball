@@ -122,11 +122,11 @@ export default function Welcome() {
             </View>
 
             {/* Title with increased hierarchy */}
-            <Text style={styles.title}>Build a consistent{'\n'}practice habit</Text>
+            <Text style={styles.title}>Let's make practice{'\n'}happen ⚾</Text>
             
             {/* Subtitle with better spacing */}
             <Text style={styles.subtitle}>
-              Track your child's baseball practice{'\n'}in seconds
+              Most kids improve in the first week.{'\n'}You're 30 seconds away from a system that works.
             </Text>
 
             {/* Social proof */}
@@ -149,7 +149,7 @@ export default function Welcome() {
                   end={{ x: 0, y: 1 }}
                   style={styles.button}
                 >
-                  <Text style={styles.buttonText}>Start Practice Now ⚾</Text>
+                  <Text style={styles.buttonText}>Let's Go ⚾</Text>
                 </LinearGradient>
               </TouchableOpacity>
             </Animated.View>

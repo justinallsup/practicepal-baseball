@@ -118,6 +118,7 @@ export default function StoreScreen() {
             <Text style={styles.sectionTitle}>{section.section}</Text>
             {section.items.map(item => {
               const canAfford = totalPoints >= item.points
+              const almostThere = !canAfford && totalPoints >= item.points * 0.7
               return (
                 <View key={item.name} style={styles.itemRow}>
                   {item.icon
@@ -127,6 +128,8 @@ export default function StoreScreen() {
                   <View style={styles.itemInfo}>
                     <Text style={styles.itemName}>{item.name}</Text>
                     <Text style={styles.itemPoints}>⭐ {item.points} pts</Text>
+                    {almostThere && <Text style={styles.almostThereLabel}>Almost there!</Text>}
+                    {canAfford && <Text style={styles.readyLabel}>Ready to redeem</Text>}
                   </View>
                   <TouchableOpacity
                     style={[styles.redeemBtn, !canAfford && styles.redeemBtnDisabled]}
@@ -144,7 +147,7 @@ export default function StoreScreen() {
         ))}
 
         <Text style={styles.footer}>
-          Log practice every day to earn more points!
+          Keep practicing to earn more points — you're close! ⚾
         </Text>
       </ScrollView>
     </SafeAreaView>
@@ -281,5 +284,15 @@ const styles = StyleSheet.create({
     color: '#94a3b8',
     textAlign: 'center',
     fontStyle: 'italic',
+  },
+  almostThereLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#d97706',
+  },
+  readyLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#22c55e',
   },
 })

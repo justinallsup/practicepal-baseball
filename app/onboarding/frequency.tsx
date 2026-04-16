@@ -48,9 +48,10 @@ export default function FrequencyScreen() {
   const handleSelect = (freq: Frequency) => {
     setPracticeFrequency(freq)
     
-    let feedback = 'Got it 👍'
-    if (freq === 'rarely') feedback = "We'll help fix that 💪"
-    if (freq === '3x+') feedback = 'Nice — consistency builds results 🔥'
+    let feedback = 'Got it — we\'ll build from here 👍'
+    if (freq === 'rarely') feedback = "Perfect — we'll start small and build momentum 💪"
+    if (freq === '1-2x') feedback = "Great start — we'll keep them on track ⚾"
+    if (freq === '3x+') feedback = 'Awesome — we\'ll keep them consistent 🔥'
     
     setFeedbackText(feedback)
     setShowFeedback(true)

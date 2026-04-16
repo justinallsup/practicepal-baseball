@@ -106,6 +106,15 @@ export default function SetGoalScreen() {
             </View>
           </View>
 
+          <View style={styles.almostThereCard}>
+            <Text style={styles.almostThereText}>
+              You're {practices} practices away from unlocking: {rewardName} 🎯
+            </Text>
+            <Text style={styles.almostThereSub}>
+              Most kids hit their first reward in 3–5 days
+            </Text>
+          </View>
+
           <View style={styles.progressBar}>
             <View style={styles.progressBarTrack}>
               <View style={[styles.progressBarFill, { width: '0%' }]} />
@@ -277,5 +286,26 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 19,
     fontWeight: '800',
+  },
+  almostThereCard: {
+    backgroundColor: '#fef3c7',
+    borderRadius: 16,
+    padding: 16,
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1.5,
+    borderColor: '#fbbf24',
+  },
+  almostThereText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#92400e',
+    textAlign: 'center',
+  },
+  almostThereSub: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#a16207',
+    textAlign: 'center',
   },
 })

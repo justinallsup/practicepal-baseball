@@ -45,7 +45,7 @@ export default function TrialScreen() {
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <Text style={styles.step}>6 of 6</Text>
           <Text style={styles.title}>Start your 3-day free trial</Text>
-          <Text style={styles.subtitle}>Most parents see results in the first week</Text>
+          <Text style={styles.subtitle}>Most kids increase practice in the first week</Text>
 
           <View style={styles.plansRow}>
             <TouchableOpacity
