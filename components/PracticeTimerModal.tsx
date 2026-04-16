@@ -129,7 +129,7 @@ export function PracticeTimerModal({ visible, onComplete, onCancel }: PracticeTi
         {/* Setup Phase */}
         {phase === 'setup' && (
           <View style={styles.setupContainer}>
-            <Text style={styles.title}>Let's Practice!</Text>
+            <Text style={styles.title}>Let's Practice! 🔥</Text>
             
             <View style={styles.section}>
               <Text style={styles.label}>How long?</Text>
@@ -221,11 +221,7 @@ export function PracticeTimerModal({ visible, onComplete, onCancel }: PracticeTi
 
             {selectedChallenge && (
               <View style={styles.challengeDisplay}>
-                <AppIcon
-                  name={PRACTICE_CHALLENGES.find(c => c.id === selectedChallenge)?.icon ?? 'baseball'}
-                  size={48}
-                  color="#fff"
-                />
+                <Text style={styles.challengeDisplayLabel}>🎯 Challenge:</Text>
                 <Text style={styles.challengeDisplayText}>
                   {PRACTICE_CHALLENGES.find(c => c.id === selectedChallenge)?.title}
                 </Text>
@@ -454,12 +450,18 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   challengeDisplay: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: 'rgba(255,255,255,0.15)',
     paddingHorizontal: 24,
-    paddingVertical: 16,
+    paddingVertical: 14,
     borderRadius: 16,
     alignItems: 'center',
-    gap: 8,
+    gap: 4,
+    width: '100%',
+  },
+  challengeDisplayLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.7)',
   },
   challengeDisplayEmoji: {
     fontSize: 48,

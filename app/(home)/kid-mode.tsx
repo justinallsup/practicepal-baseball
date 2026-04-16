@@ -105,6 +105,12 @@ export default function KidModeScreen() {
             ))}
           </View>
           <Text style={styles.progressLabel}>{progress} / {rewardTarget} completed</Text>
+          {rewardTarget - progress === 1 && !rewardEarned && (
+            <Text style={styles.almostThereLabel}>Only 1 more to unlock {rewardName}! 🎯</Text>
+          )}
+          {rewardTarget - progress > 1 && rewardTarget - progress <= 3 && !rewardEarned && (
+            <Text style={styles.almostThereLabel}>Almost there — {rewardTarget - progress} more to go!</Text>
+          )}
         </View>
 
         {/* Streak */}
@@ -281,6 +287,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: '#1e40af',
+  },
+  almostThereLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#d97706',
+    marginTop: 4,
   },
   streakRow: {
     backgroundColor: '#fff',

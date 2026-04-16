@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react'
+import React, { useState, useRef, useCallback, useEffect } from 'react'
 import {
   View,
   Text,
@@ -73,11 +73,35 @@ export default function HomeScreen() {
   // Animation refs
   const successScale = useRef(new Animated.Value(0)).current
   const confettiOpacity = useRef(new Animated.Value(0)).current
+  const buttonPulse = useRef(new Animated.Value(1)).current
 
   const currentStreak = getCurrentStreak()
   const bestStreak = getBestStreak()
   const loggedToday = hasLoggedToday()
   const paywallActive = shouldShowPaywall()
+
+  // Pulse animation for Start Practice button
+  useEffect(() => {
+    if (!loggedToday && !paywallActive) {
+      const pulse = Animated.loop(
+        Animated.sequence([
+          Animated.timing(buttonPulse, {
+            toValue: 1.04,
+            duration: 600,
+            useNativeDriver: true,
+          }),
+          Animated.timing(buttonPulse, {
+            toValue: 1,
+            duration: 600,
+            useNativeDriver: true,
+          }),
+          Animated.delay(2000),
+        ])
+      )
+      pulse.start()
+      return () => pulse.stop()
+    }
+  }, [loggedToday, paywallActive])
 
   const handleLogPress = useCallback(async () => {
     if (Platform.OS !== 'web') {
@@ -424,15 +448,17 @@ export default function HomeScreen() {
         ) : (
           /* Log button state */
           <View style={styles.logContainer}>
-            <TouchableOpacity
-              style={styles.logButton}
-              onPress={handleLogPress}
-              activeOpacity={0.85}
-            >
-              <AppIcon name="baseball" size={24} color="#fff" />
-              <Text style={styles.logButtonText}>Start Practice</Text>
-            </TouchableOpacity>
-            <Text style={styles.logSubtitle}>Tap to log today's practice</Text>
+            <Animated.View style={{ transform: [{ scale: buttonPulse }] }}>
+              <TouchableOpacity
+                style={styles.logButton}
+                onPress={handleLogPress}
+                activeOpacity={0.85}
+              >
+                <AppIcon name="baseball" size={24} color="#fff" />
+                <Text style={styles.logButtonText}>Start Practice</Text>
+              </TouchableOpacity>
+            </Animated.View>
+            <Text style={styles.logSubtitle}>Let's go — tap to start ⚾</Text>
           </View>
         )}
       </View>

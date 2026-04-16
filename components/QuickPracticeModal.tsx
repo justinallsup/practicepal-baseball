@@ -150,7 +150,7 @@ export function QuickPracticeModal({ visible, onComplete, onCancel }: QuickPract
                 style={[styles.finishButton, isComplete && styles.finishButtonComplete]}
               >
                 <Text style={styles.finishButtonText}>
-                  {isComplete ? "Done! 🎉" : 'Finish Practice'}
+                  {isComplete ? "Nice work! 🎉" : 'Finish Practice'}
                 </Text>
               </TouchableOpacity>
 
