@@ -140,6 +140,10 @@ export default function HomeScreen() {
     // Always mark as logged this session so success state shows
     setLoggedThisSession(true)
 
+    // Reset animation values so they replay
+    successScale.setValue(0)
+    confettiOpacity.setValue(0)
+
     if (!result.alreadyLoggedToday) {
       // Check if reward was just earned
       if (reward && !isRewardEarned()) {

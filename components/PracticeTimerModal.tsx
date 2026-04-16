@@ -26,6 +26,8 @@ export function PracticeTimerModal({ visible, onComplete, onCancel }: PracticeTi
   const [showEncouragement, setShowEncouragement] = useState(false)
   const [encouragementText, setEncouragementText] = useState('')
   
+  const [showEarlyFinishModal, setShowEarlyFinishModal] = useState(false)
+  
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const encouragementOpacity = useRef(new Animated.Value(0)).current
 
@@ -47,6 +49,7 @@ export function PracticeTimerModal({ visible, onComplete, onCancel }: PracticeTi
       setElapsedSeconds(0)
       setSelectedChallenge(undefined)
       setShowEncouragement(false)
+      setShowEarlyFinishModal(false)
     }
   }, [visible])
 
@@ -97,7 +100,21 @@ export function PracticeTimerModal({ visible, onComplete, onCancel }: PracticeTi
 
   const handleFinish = () => {
     if (timerRef.current) clearInterval(timerRef.current)
+    if (!isComplete) {
+      setShowEarlyFinishModal(true)
+    } else {
+      setPhase('complete')
+    }
+  }
+
+  const handleEarlyFinish = () => {
+    setShowEarlyFinishModal(false)
     setPhase('complete')
+  }
+
+  const handleKeepPracticing = () => {
+    setShowEarlyFinishModal(false)
+    setPhase('active')
   }
 
   const handleDone = () => {
@@ -113,6 +130,7 @@ export function PracticeTimerModal({ visible, onComplete, onCancel }: PracticeTi
     setPhase('setup')
     setElapsedSeconds(0)
     setSelectedChallenge(undefined)
+    setShowEarlyFinishModal(false)
     onCancel()
   }
 
@@ -275,6 +293,27 @@ export function PracticeTimerModal({ visible, onComplete, onCancel }: PracticeTi
             <TouchableOpacity onPress={handleDone} style={styles.doneButton}>
               <Text style={styles.doneButtonText}>Done 🎯</Text>
             </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Early Finish Modal */}
+        {showEarlyFinishModal && (
+          <View style={styles.earlyFinishOverlay}>
+            <View style={styles.earlyFinishModal}>
+              <Text style={styles.earlyFinishEmoji}>💪</Text>
+              <Text style={styles.earlyFinishTitle}>Finish early?</Text>
+              <Text style={styles.earlyFinishSubtitle}>
+                You still have {formatTime(remainingSeconds)} left — but any practice counts!
+              </Text>
+              <View style={styles.earlyFinishButtons}>
+                <TouchableOpacity onPress={handleKeepPracticing} style={styles.keepButton}>
+                  <Text style={styles.keepButtonText}>Keep Going 🔥</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handleEarlyFinish} style={styles.endButton}>
+                  <Text style={styles.endButtonText}>I'm Done</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
         )}
         </View>
@@ -593,5 +632,67 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '800',
     color: '#10b981',
+  },
+  earlyFinishOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+    zIndex: 200,
+  },
+  earlyFinishModal: {
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    padding: 32,
+    width: '100%',
+    maxWidth: 360,
+    alignItems: 'center',
+  },
+  earlyFinishEmoji: {
+    fontSize: 56,
+    marginBottom: 16,
+  },
+  earlyFinishTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#0f172a',
+    marginBottom: 8,
+  },
+  earlyFinishSubtitle: {
+    fontSize: 15,
+    color: '#64748b',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  earlyFinishButtons: {
+    width: '100%',
+    gap: 12,
+  },
+  keepButton: {
+    backgroundColor: '#10b981',
+    paddingVertical: 16,
+    borderRadius: 14,
+    alignItems: 'center',
+  },
+  keepButtonText: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: '#fff',
+  },
+  endButton: {
+    backgroundColor: '#f1f5f9',
+    paddingVertical: 16,
+    borderRadius: 14,
+    alignItems: 'center',
+  },
+  endButtonText: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#475569',
   },
 })
