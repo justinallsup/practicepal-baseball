@@ -64,14 +64,15 @@ export default function KidModeScreen() {
         markRewardEarned()
         setRewardComplete(true)
       }
-
-      setShowSuccess(true)
-      Animated.timing(successOpacity, {
-        toValue: 1,
-        duration: 400,
-        useNativeDriver: true,
-      }).start()
     }
+
+    // Always show success after completing practice flow
+    setShowSuccess(true)
+    Animated.timing(successOpacity, {
+      toValue: 1,
+      duration: 400,
+      useNativeDriver: true,
+    }).start()
   }
 
   const handlePracticeCancel = () => {

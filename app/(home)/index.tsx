@@ -136,9 +136,11 @@ export default function HomeScreen() {
     
     // Now log the practice
     const result = logPractice([])
-    if (!result.alreadyLoggedToday) {
-      setLoggedThisSession(true)
+    
+    // Always mark as logged this session so success state shows
+    setLoggedThisSession(true)
 
+    if (!result.alreadyLoggedToday) {
       // Check if reward was just earned
       if (reward && !isRewardEarned()) {
         const progress = getRewardProgress()
@@ -159,21 +161,23 @@ export default function HomeScreen() {
           currentStreak: getCurrentStreak(),
         }).catch(() => {})
       }
+    }
 
-      // Animate success
-      Animated.parallel([
-        Animated.spring(successScale, {
-          toValue: 1,
-          useNativeDriver: true,
-          damping: 12,
-          stiffness: 150,
-        }),
-        Animated.timing(confettiOpacity, {
-          toValue: 1,
-          duration: 400,
-          useNativeDriver: true,
-        }),
-      ]).start(() => {
+    // Always animate success
+    Animated.parallel([
+      Animated.spring(successScale, {
+        toValue: 1,
+        useNativeDriver: true,
+        damping: 12,
+        stiffness: 150,
+      }),
+      Animated.timing(confettiOpacity, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      if (!result.alreadyLoggedToday) {
         const currentLogs = useStore.getState().logs
         if (currentLogs.length === 2 && !hasAskedNotificationPermission) {
           setTimeout(() => {
@@ -187,8 +191,8 @@ export default function HomeScreen() {
             router.push('/(home)/paywall')
           }
         }, 1800)
-      })
-    }
+      }
+    })
   }, [
     logPractice,
     reward,

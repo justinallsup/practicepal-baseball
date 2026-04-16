@@ -17,12 +17,13 @@ interface QuickPracticeModalProps {
 }
 
 export function QuickPracticeModal({ visible, onComplete, onCancel }: QuickPracticeModalProps) {
-  const [phase, setPhase] = useState<'setup' | 'active'>('setup')
+  const [phase, setPhase] = useState<'setup' | 'active' | 'complete'>('setup')
   const [duration, setDuration] = useState<PracticeDuration>(15)
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
   const [showEarlyFinishModal, setShowEarlyFinishModal] = useState(false)
   
   const timerRef = useRef<NodeJS.Timeout | null>(null)
+  const confettiScale = useRef(new Animated.Value(0)).current
 
   const targetSeconds = duration * 60
   const progress = Math.min((elapsedSeconds / targetSeconds) * 100, 100)
@@ -40,6 +41,7 @@ export function QuickPracticeModal({ visible, onComplete, onCancel }: QuickPract
     if (visible) {
       setPhase('setup')
       setElapsedSeconds(0)
+      confettiScale.setValue(0)
     }
   }, [visible])
 
@@ -54,6 +56,18 @@ export function QuickPracticeModal({ visible, onComplete, onCancel }: QuickPract
     }
   }, [phase])
 
+  // Animate confetti on complete phase
+  useEffect(() => {
+    if (phase === 'complete') {
+      Animated.spring(confettiScale, {
+        toValue: 1,
+        damping: 10,
+        stiffness: 120,
+        useNativeDriver: true,
+      }).start()
+    }
+  }, [phase])
+
   const handleStart = () => {
     setPhase('active')
     setElapsedSeconds(0)
@@ -62,27 +76,27 @@ export function QuickPracticeModal({ visible, onComplete, onCancel }: QuickPract
   const handleFinish = () => {
     if (timerRef.current) clearInterval(timerRef.current)
     
-    // If not complete, show early finish modal
     if (!isComplete) {
       setShowEarlyFinishModal(true)
     } else {
-      onComplete()
-      setPhase('setup')
-      setElapsedSeconds(0)
+      setPhase('complete')
     }
   }
 
   const handleEarlyFinish = () => {
     setShowEarlyFinishModal(false)
-    onComplete()
-    setPhase('setup')
-    setElapsedSeconds(0)
+    setPhase('complete')
   }
 
   const handleKeepPracticing = () => {
     setShowEarlyFinishModal(false)
-    // Resume timer
     setPhase('active')
+  }
+
+  const handleDone = () => {
+    onComplete()
+    setPhase('setup')
+    setElapsedSeconds(0)
   }
 
   const handleCancelModal = () => {
@@ -102,7 +116,7 @@ export function QuickPracticeModal({ visible, onComplete, onCancel }: QuickPract
           {/* Setup Phase */}
           {phase === 'setup' && (
             <View style={styles.setupContainer}>
-              <Text style={styles.title}>Quick Practice</Text>
+              <Text style={styles.title}>Quick Practice ⚡</Text>
               <Text style={styles.subtitle}>Set duration and start</Text>
               
               <View style={styles.durationRow}>
@@ -131,7 +145,7 @@ export function QuickPracticeModal({ visible, onComplete, onCancel }: QuickPract
           {/* Active Phase */}
           {phase === 'active' && (
             <View style={styles.activeContainer}>
-              <Text style={styles.activeTitle}>Practice In Progress</Text>
+              <Text style={styles.activeTitle}>Practice In Progress 🔥</Text>
               
               <View style={styles.timerContainer}>
                 <Text style={styles.timerText}>{formatTime(remainingSeconds)}</Text>
@@ -160,21 +174,51 @@ export function QuickPracticeModal({ visible, onComplete, onCancel }: QuickPract
             </View>
           )}
 
+          {/* Complete Phase */}
+          {phase === 'complete' && (
+            <View style={styles.completeContainer}>
+              <Animated.Text style={[styles.confettiRow, { transform: [{ scale: confettiScale }] }]}>
+                🎉 ⭐ 🏆 ⭐ 🎉
+              </Animated.Text>
+              <Text style={styles.completeTitle}>Practice Complete!</Text>
+              <Text style={styles.completeSubtitle}>Nice work — you showed up 💪</Text>
+              
+              <View style={styles.completeStatsCard}>
+                <View style={styles.completeStatRow}>
+                  <View style={styles.completeStatItem}>
+                    <Text style={styles.completeStatLabel}>🔥 Points</Text>
+                    <Text style={styles.completeStatValue}>+10</Text>
+                  </View>
+                  <View style={styles.completeStatItem}>
+                    <Text style={styles.completeStatLabel}>⏱ Time</Text>
+                    <Text style={styles.completeStatValueSmall}>{Math.round(elapsedSeconds / 60)} min</Text>
+                  </View>
+                </View>
+              </View>
+
+              <Text style={styles.keepGoingText}>Keep the streak alive — come back tomorrow! 🔥</Text>
+
+              <TouchableOpacity onPress={handleDone} style={styles.doneButton}>
+                <Text style={styles.doneButtonText}>Done 🎯</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
           {/* Early Finish Modal */}
           {showEarlyFinishModal && (
             <View style={styles.earlyFinishOverlay}>
               <View style={styles.earlyFinishModal}>
-                <Text style={styles.earlyFinishEmoji}>🤔</Text>
-                <Text style={styles.earlyFinishTitle}>End practice early?</Text>
+                <Text style={styles.earlyFinishEmoji}>💪</Text>
+                <Text style={styles.earlyFinishTitle}>Finish early?</Text>
                 <Text style={styles.earlyFinishSubtitle}>
-                  You still have {formatTime(remainingSeconds)} left!
+                  You still have {formatTime(remainingSeconds)} left — but any practice counts!
                 </Text>
                 <View style={styles.earlyFinishButtons}>
                   <TouchableOpacity onPress={handleKeepPracticing} style={styles.keepButton}>
-                    <Text style={styles.keepButtonText}>Keep Practicing</Text>
+                    <Text style={styles.keepButtonText}>Keep Going 🔥</Text>
                   </TouchableOpacity>
                   <TouchableOpacity onPress={handleEarlyFinish} style={styles.endButton}>
-                    <Text style={styles.endButtonText}>End Early</Text>
+                    <Text style={styles.endButtonText}>I'm Done</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -386,5 +430,77 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '700',
     color: '#475569',
+  },
+  completeContainer: {
+    alignItems: 'center',
+    gap: 16,
+  },
+  confettiRow: {
+    fontSize: 28,
+    letterSpacing: 4,
+    marginBottom: 4,
+  },
+  completeTitle: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#fff',
+  },
+  completeSubtitle: {
+    fontSize: 18,
+    color: 'rgba(255,255,255,0.9)',
+  },
+  completeStatsCard: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    paddingHorizontal: 32,
+    paddingVertical: 20,
+    borderRadius: 20,
+    width: '100%',
+  },
+  completeStatRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  completeStatItem: {
+    alignItems: 'center',
+    gap: 4,
+  },
+  completeStatLabel: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.8)',
+  },
+  completeStatValue: {
+    fontSize: 48,
+    fontWeight: '800',
+    color: '#fff',
+  },
+  completeStatValueSmall: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#fff',
+  },
+  keepGoingText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.8)',
+    textAlign: 'center',
+  },
+  doneButton: {
+    backgroundColor: '#fff',
+    paddingVertical: 20,
+    paddingHorizontal: 60,
+    borderRadius: 18,
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 8,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
+  },
+  doneButtonText: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#1e40af',
   },
 })
