@@ -16,7 +16,7 @@ export default function HomeLayout() {
     if (isTrialExpired() && subscriptionStatus !== 'active') {
       router.replace('/(home)/paywall')
     }
-  })
+  }, [subscriptionStatus])
 
   return (
     <Tabs

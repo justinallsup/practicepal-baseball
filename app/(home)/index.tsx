@@ -180,23 +180,7 @@ export default function HomeScreen() {
         duration: 400,
         useNativeDriver: true,
       }),
-    ]).start(() => {
-      if (!result.alreadyLoggedToday) {
-        const currentLogs = useStore.getState().logs
-        if (currentLogs.length === 2 && !hasAskedNotificationPermission) {
-          setTimeout(() => {
-            setShowNotifPrompt(true)
-          }, 600)
-        }
-
-        setTimeout(() => {
-          const show = shouldShowPaywall()
-          if (show) {
-            router.push('/(home)/paywall')
-          }
-        }, 1800)
-      }
-    })
+    ]).start()
   }, [
     logPractice,
     reward,
@@ -205,8 +189,6 @@ export default function HomeScreen() {
     markRewardEarned,
     notificationsEnabled,
     getCurrentStreak,
-    shouldShowPaywall,
-    hasAskedNotificationPermission,
     successScale,
     confettiOpacity,
   ])
@@ -252,24 +234,7 @@ export default function HomeScreen() {
           duration: 400,
           useNativeDriver: true,
         }),
-      ]).start(() => {
-        // After success animation, check if we should show notification prompt
-        // Show after 2nd log and haven't asked yet
-        const currentLogs = useStore.getState().logs
-        if (currentLogs.length === 2 && !hasAskedNotificationPermission) {
-          setTimeout(() => {
-            setShowNotifPrompt(true)
-          }, 600)
-        }
-
-        // After 2s, check if we should navigate to paywall
-        setTimeout(() => {
-          const show = shouldShowPaywall()
-          if (show) {
-            router.push('/(home)/paywall')
-          }
-        }, 1800)
-      })
+      ]).start()
     }
   }, [
     selectedTypes,
