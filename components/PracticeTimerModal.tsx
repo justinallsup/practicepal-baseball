@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { PracticeDuration, PRACTICE_CHALLENGES } from '../lib/practice-types'
 import { AppIcon } from './AppIcon'
+import { Confetti } from './Confetti'
 import { Play } from 'lucide-react-native'
 
 interface PracticeTimerModalProps {
@@ -20,6 +21,7 @@ interface PracticeTimerModalProps {
 
 export function PracticeTimerModal({ visible, onComplete, onCancel }: PracticeTimerModalProps) {
   const [phase, setPhase] = useState<'setup' | 'active' | 'complete'>('setup')
+  const [showConfetti, setShowConfetti] = useState(false)
   const [duration, setDuration] = useState<PracticeDuration>(15)
   const [selectedChallenge, setSelectedChallenge] = useState<string | undefined>()
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
@@ -55,6 +57,7 @@ export function PracticeTimerModal({ visible, onComplete, onCancel }: PracticeTi
     setSelectedChallenge(undefined)
     setShowEncouragement(false)
     setShowEarlyFinishModal(false)
+    setShowConfetti(false)
   }, [])
 
   // Reset when modal becomes visible
@@ -77,6 +80,8 @@ export function PracticeTimerModal({ visible, onComplete, onCancel }: PracticeTi
             timerRef.current = null
             setTimerRunning(false)
             setPhase('complete')
+            setShowConfetti(true)
+            setTimeout(() => setShowConfetti(false), 2500)
           }
           // Show encouragement at milestones
           const pct = next / targetSeconds
@@ -120,12 +125,17 @@ export function PracticeTimerModal({ visible, onComplete, onCancel }: PracticeTi
     setTimerRunning(true)
   }
 
+  const triggerComplete = () => {
+    setTimerRunning(false)
+    setPhase('complete')
+    setShowConfetti(true)
+    setTimeout(() => setShowConfetti(false), 2500)
+  }
+
   const handleFinish = () => {
     if (isComplete) {
-      setTimerRunning(false)
-      setPhase('complete')
+      triggerComplete()
     } else {
-      // Pause the timer and show early-finish dialog
       setTimerRunning(false)
       setShowEarlyFinishModal(true)
     }
@@ -133,14 +143,12 @@ export function PracticeTimerModal({ visible, onComplete, onCancel }: PracticeTi
 
   const handleKeepPracticing = () => {
     setShowEarlyFinishModal(false)
-    // Resume timer — always starts a fresh interval because timerRunning flips false→true
     setTimerRunning(true)
   }
 
   const handleEarlyFinish = () => {
     setShowEarlyFinishModal(false)
-    setTimerRunning(false)
-    setPhase('complete')
+    triggerComplete()
   }
 
   const handleDone = () => {
@@ -159,6 +167,7 @@ export function PracticeTimerModal({ visible, onComplete, onCancel }: PracticeTi
   return (
     <Modal visible={visible} animationType="slide" transparent={false}>
       <SafeAreaView style={styles.safeArea}>
+        <Confetti visible={showConfetti} />
         <View style={styles.container}>
 
           {/* ── Setup ── */}

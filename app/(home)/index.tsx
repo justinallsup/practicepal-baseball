@@ -21,6 +21,7 @@ import { PracticeModeSelector } from '../../components/PracticeModeSelector'
 import { PracticeTimerModal } from '../../components/PracticeTimerModal'
 import { QuickPracticeModal } from '../../components/QuickPracticeModal'
 import { AppIcon } from '../../components/AppIcon'
+import { Confetti } from '../../components/Confetti'
 import { Flame, Star, Target } from 'lucide-react-native'
 import {
   requestNotificationPermission,
@@ -66,12 +67,12 @@ export default function HomeScreen() {
   const [showRewardModal, setShowRewardModal] = useState(false)
   const [selectedFeeling, setSelectedFeeling] = useState<Feeling | null>(null)
   const [showNotifPrompt, setShowNotifPrompt] = useState(false)
+  const [showConfetti, setShowConfetti] = useState(false)
   const [showPracticeModeSelector, setShowPracticeModeSelector] = useState(false)
   const [showKidPracticeModal, setShowKidPracticeModal] = useState(false)
-  const [showQuickPracticeModal, setShowQuickPracticeModal] = useState(false)
 
+  const [showQuickPracticeModal, setShowQuickPracticeModal] = useState(false)
   // Animation refs
-  const successScale = useRef(new Animated.Value(0)).current
   const confettiOpacity = useRef(new Animated.Value(0)).current
   const buttonPulse = useRef(new Animated.Value(1)).current
 
@@ -139,6 +140,8 @@ export default function HomeScreen() {
     
     // Always mark as logged this session so success state shows
     setLoggedThisSession(true)
+    setShowConfetti(true)
+    setTimeout(() => setShowConfetti(false), 2500)
 
     // Reset animation values so they replay
     successScale.setValue(0.8)
@@ -294,7 +297,7 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Header */}
+      <Confetti visible={showConfetti} />
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{child?.name ?? 'Player'}'s Practice</Text>
         <TouchableOpacity
@@ -368,9 +371,7 @@ export default function HomeScreen() {
                 </Text>
               )}
               {loggedThisSession && (
-                <Animated.Text style={[styles.confetti, { opacity: confettiOpacity }]}>
-                  🎉 ⭐ 🔥 ⭐ 🎉
-                </Animated.Text>
+                <Text style={styles.confetti}>🎉 ⭐ 🔥 ⭐ 🎉</Text>
               )}
             </Animated.View>
 

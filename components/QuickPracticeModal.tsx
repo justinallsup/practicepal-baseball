@@ -9,6 +9,7 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { PracticeDuration } from '../lib/practice-types'
+import { Confetti } from './Confetti'
 
 interface QuickPracticeModalProps {
   visible: boolean
@@ -22,6 +23,7 @@ export function QuickPracticeModal({ visible, onComplete, onCancel }: QuickPract
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
   const [timerRunning, setTimerRunning] = useState(false)
   const [showEarlyFinishModal, setShowEarlyFinishModal] = useState(false)
+  const [showConfetti, setShowConfetti] = useState(false)
 
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const confettiScale = useRef(new Animated.Value(0)).current
@@ -45,6 +47,7 @@ export function QuickPracticeModal({ visible, onComplete, onCancel }: QuickPract
     setTimerRunning(false)
     setShowEarlyFinishModal(false)
     confettiScale.setValue(0)
+    setShowConfetti(false)
   }, [])
 
   // Reset when modal becomes visible
@@ -64,6 +67,8 @@ export function QuickPracticeModal({ visible, onComplete, onCancel }: QuickPract
             setTimerRunning(false)
             setPhase('complete')
             Animated.spring(confettiScale, { toValue: 1, damping: 10, stiffness: 120, useNativeDriver: true }).start()
+            setShowConfetti(true)
+            setTimeout(() => setShowConfetti(false), 2500)
           }
           return next
         })
@@ -93,6 +98,8 @@ export function QuickPracticeModal({ visible, onComplete, onCancel }: QuickPract
       setTimerRunning(false)
       setPhase('complete')
       Animated.spring(confettiScale, { toValue: 1, damping: 10, stiffness: 120, useNativeDriver: true }).start()
+            setShowConfetti(true)
+            setTimeout(() => setShowConfetti(false), 2500)
     } else {
       setTimerRunning(false)
       setShowEarlyFinishModal(true)
@@ -109,6 +116,8 @@ export function QuickPracticeModal({ visible, onComplete, onCancel }: QuickPract
     setTimerRunning(false)
     setPhase('complete')
     Animated.spring(confettiScale, { toValue: 1, damping: 10, stiffness: 120, useNativeDriver: true }).start()
+            setShowConfetti(true)
+            setTimeout(() => setShowConfetti(false), 2500)
   }
 
   const handleDone = () => {
@@ -126,6 +135,7 @@ export function QuickPracticeModal({ visible, onComplete, onCancel }: QuickPract
   return (
     <Modal visible={visible} animationType="slide" transparent={false}>
       <SafeAreaView style={styles.safeArea}>
+        <Confetti visible={showConfetti} />
         <View style={styles.container}>
 
           {/* ── Setup ── */}
