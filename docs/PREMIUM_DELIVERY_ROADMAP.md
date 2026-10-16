@@ -1,38 +1,29 @@
-# PracticePal Premium — delivery roadmap and release gates
+# PracticePal premium web release — October 16, 2026
 
-## Implemented in this draft PR
-- CI preflight, TypeScript fixes, notification type fix, basic weekly progress refinements.
-- Disabled nonfunctional subscription activation and associated trial redirect; tracking stays accessible.
-- Removed unverified marketing claims.
-- Curated six drill instructions and a goal-aware weekly training screen; training tab replaces simulated leaderboard tab.
+## Delivered for the website
+- Cohesive navy, cream, and baseball-red visual system, responsive desktop/phone layouts, accessible controls, and simplified five-tab navigation.
+- New parent-led welcome and one-screen player setup. Nicknames only; no registration or payment required.
+- Today dashboard, weekly calendar, realistic goals, saved/pauseable timers, quick logging, feelings, and drill-driven practice.
+- Goal-aware weekly plan, six illustrated drills with equipment and safety guidance, skill filtering, and session launch.
+- Eight-week practice history, evidence-based achievements, and parent-entered skill benchmarks with trend charts and removable entries.
+- Parent-chosen family goals and point rewards with approval/decline, reservation, and exactly-once refunds. Existing family rewards remain visible.
+- Parent gate, settings, weekly recap, supported native reminder controls, JSON export, complete local reset, and accurate local-data disclosures.
+- Removed synthetic competitors, fake referrals, unverified improvement claims, unsupported affiliate prices, duplicate app routes, and purchase/trial activation.
+- Legacy local records migrate; returning users bypass setup. One practice day awards points once; timed sessions cannot be completed repeatedly.
+- SDK 54 compatibility repaired; web and native JS bundles compile. TypeScript, Vitest, and Playwright checks included in CI.
+- SEO/share metadata, focus outlines, reduced-motion rules, and security response headers.
 
-## Remaining work (not complete)
-### 1. Reliability
-- Resolve Expo SDK package mismatch using `npx expo install --fix`, commit lockfile and verify CI.
-- Triage npm audit advisories; do not blindly force breaking upgrades.
-- Test full onboarding, sessions, notification flows and navigation on actual devices.
-- Review training-plan progression and youth throwing guidance with a qualified coach.
+## Website release authorization
+The owner authorized routine tested website deployment to baseballpracticepal.com on October 16, 2026. Website deployment does not authorize real payments or store publication.
 
-### 2. Product
-- Build parent-controlled skill benchmarks and longitudinal charts; track objective metrics rather than fabricated scores.
-- Add achievement cards tied to actual practice records; keep rewards parent-approved.
-- Create guided drill illustrations or original licensed videos; current library is text-only.
-- Improve visual consistency and accessibility across all screens, not just weekly/training.
-- Remove/replace remaining synthetic leaderboard data, referral claims and nonfunctional controls.
+## Held for owner approval and setup
+- Real billing remains disabled in both UI and state actions. No live checkout, trial, entitlement, or charge is enabled. Billing integration requirements are in SUBSCRIPTION_IMPLEMENTATION.md.
+- Apple and Google developer accounts and Expo EAS project registration are not complete. Fake EAS IDs and placeholder submit credentials were removed.
+- Signed iOS/Android builds, physical-device acceptance testing, store privacy/age classification review, screenshots/listings, and actual submissions remain outstanding. Native JavaScript compilation is not a signed build or device test.
+- Obtain qualified coaching review before making performance claims or introducing throwing workloads, age-specific pitch limits, or paid coaching programs.
 
-### 3. Billing
-- Register Apple/Google developer accounts, Expo EAS project, RevenueCat project and actual subscription products.
-- Implement native purchase SDK with verified entitlements, restore purchases and cancellation/error handling.
-- Ensure a functional free tier and truthful purchase/trial disclosures. No live checkout before sandbox tests.
-
-### 4. Privacy and compliance
-- Determine parent-directed versus child-directed classification; implement parental gates for purchases, external links, sharing.
-- Publish accurate privacy policy and data deletion guidance. Review COPPA and store policies.
-- Validate analytics, notifications, SDKs, and any future video storage against disclosed practices.
-
-### 5. Launch
-- Generate production app assets/screenshots from tested builds, prepare listings and metadata.
-- TestFlight and Play internal testing, manual acceptance signoff, then production submission only with owner approval.
-
-## Acceptance
-CI green, native builds green, test purchases green, no unresolved critical release blockers, owner approval. No production changes from this branch without review.
+## Deliberate current limits
+- Single player per browser/device; no backend, accounts, cloud sync, multiplayer, push notifications on web, or online reward fulfillment.
+- Export is a readable JSON record, not an import/restore feature. Deletion is irreversible. Parent gate is a deterrent to accidental changes, not authentication.
+- Weekly plans are deterministic suggestions, not AI-generated coaching. Illustrations explain setup; they are not videos or biomechanical instruction.
+- Toolchain dependency advisories remain; see RELEASE_VERIFICATION.md. A future SDK upgrade must be independently tested before native store release.

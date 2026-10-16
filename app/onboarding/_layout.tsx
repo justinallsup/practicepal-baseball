@@ -1,17 +1,15 @@
-import React from 'react'
-import { Stack } from 'expo-router'
-
+import React, { useEffect, useState } from "react";
+import { Stack, Redirect } from "expo-router";
+import { useStore } from "../../lib/store";
 export default function OnboardingLayout() {
-  return (
-    <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
-      <Stack.Screen name="index" />
-      <Stack.Screen name="frequency" />
-      <Stack.Screen name="goals" />
-      <Stack.Screen name="reward-pick" />
-      <Stack.Screen name="trial" />
-      <Stack.Screen name="add-child" />
-      <Stack.Screen name="set-goal" />
-      <Stack.Screen name="add-reward" />
-    </Stack>
-  )
+  const complete = useStore((s) => s.onboardingComplete);
+  const [ready, setReady] = useState(useStore.persist.hasHydrated());
+  useEffect(() => {
+    const unsub = useStore.persist.onFinishHydration(() => setReady(true));
+    if (useStore.persist.hasHydrated()) setReady(true);
+    return unsub;
+  }, []);
+  if (!ready) return null;
+  if (complete) return <Redirect href="/(home)" />;
+  return <Stack screenOptions={{ headerShown: false }} />;
 }

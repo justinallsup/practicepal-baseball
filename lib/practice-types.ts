@@ -2,126 +2,128 @@
  * Practice Session Types for Baseball Practice Pal (React Native)
  */
 
-import type { AppIconName } from '../components/AppIcon'
+import type { AppIconName } from "../components/AppIcon";
 
-export type PracticeSessionState = 
-  | 'not_started'
-  | 'pre_practice'
-  | 'in_progress'
-  | 'completed'
-  | 'early_finish'
-  | 'partial'
+export type PracticeSessionState =
+  | "not_started"
+  | "pre_practice"
+  | "in_progress"
+  | "completed"
+  | "early_finish"
+  | "partial";
 
-export type PracticeDuration = 10 | 15 | 20 | 30 // minutes
+export type PracticeDuration = 10 | 15 | 20 | 30; // minutes
 
 export interface PracticeChallenge {
-  id: string
-  title: string
-  description: string
-  icon: AppIconName
+  id: string;
+  title: string;
+  description: string;
+  icon: AppIconName;
 }
 
 export interface DrillChip {
-  id: string
-  title: string
-  icon: AppIconName
+  id: string;
+  title: string;
+  icon: AppIconName;
 }
 
 export interface PracticeSession {
-  id: string
-  childId: string
-  state: PracticeSessionState
-  startedAt?: string // ISO timestamp
-  completedAt?: string // ISO timestamp
-  durationMinutes: PracticeDuration
-  elapsedSeconds?: number
-  selectedChallenge?: string // challenge id
-  selectedDrills?: string[] // drill chip ids
-  encouragementShown: number[] // milestones shown (25, 50, 75)
-  completedChallenge: boolean
-  pointsEarned?: number
+  id: string;
+  childId: string;
+  state: PracticeSessionState;
+  startedAt?: string; // ISO timestamp
+  completedAt?: string; // ISO timestamp
+  durationMinutes: PracticeDuration;
+  elapsedSeconds?: number;
+  selectedChallenge?: string; // challenge id
+  selectedDrills?: string[]; // drill chip ids
+  encouragementShown: number[]; // milestones shown (25, 50, 75)
+  completedChallenge: boolean;
+  pausedAt?: string;
+  pausedSeconds?: number;
+  pointsEarned?: number;
 }
 
 export interface PracticeSettings {
-  childId: string
-  defaultDuration: PracticeDuration
-  earlyFinishBehavior: 'count_full' | 'count_partial' | 'do_not_count'
-  soundEnabled: boolean
-  encouragementEnabled: boolean
+  childId: string;
+  defaultDuration: PracticeDuration;
+  earlyFinishBehavior: "count_full" | "count_partial" | "do_not_count";
+  soundEnabled: boolean;
+  encouragementEnabled: boolean;
 }
 
 export interface PracticeStats {
-  childId: string
-  totalSessions: number
-  totalMinutes: number
-  currentStreak: number
-  longestStreak: number
-  challengesCompleted: number
-  lastPracticeDate?: string
+  childId: string;
+  totalSessions: number;
+  totalMinutes: number;
+  currentStreak: number;
+  longestStreak: number;
+  challengesCompleted: number;
+  lastPracticeDate?: string;
 }
 
 // Predefined challenges
 export const PRACTICE_CHALLENGES: PracticeChallenge[] = [
   {
-    id: 'throw-25',
-    title: 'Throw 25 balls',
-    description: 'Practice your throwing accuracy',
-    icon: 'baseball',
+    id: "throw-25",
+    title: "Throw 25 balls",
+    description: "Practice your throwing accuracy",
+    icon: "baseball",
   },
   {
-    id: 'hit-20',
-    title: 'Hit 20 balls off tee',
-    description: 'Work on your batting stance',
-    icon: 'bat',
+    id: "hit-20",
+    title: "Hit 20 balls off tee",
+    description: "Work on your batting stance",
+    icon: "bat",
   },
   {
-    id: 'field-15',
-    title: 'Field 15 ground balls',
-    description: 'Improve your fielding skills',
-    icon: 'glove',
+    id: "field-15",
+    title: "Field 15 ground balls",
+    description: "Improve your fielding skills",
+    icon: "glove",
   },
   {
-    id: 'catch-20',
-    title: 'Catch 20 good throws',
-    description: 'Practice catching fly balls',
-    icon: 'baseball',
+    id: "catch-20",
+    title: "Catch 20 good throws",
+    description: "Practice catching fly balls",
+    icon: "baseball",
   },
   {
-    id: 'quick-feet-5',
-    title: 'Quick feet for 5 minutes',
-    description: 'Build speed and agility',
-    icon: 'run',
+    id: "quick-feet-5",
+    title: "Quick feet for 5 minutes",
+    description: "Build speed and agility",
+    icon: "run",
   },
-]
+];
 
 // Predefined drill chips
 export const DRILL_CHIPS: DrillChip[] = [
   {
-    id: 'throwing',
-    title: 'Throwing',
-    icon: 'baseball',
+    id: "throwing",
+    title: "Throwing",
+    icon: "baseball",
   },
   {
-    id: 'ground-balls',
-    title: 'Ground Balls',
-    icon: 'glove',
+    id: "ground-balls",
+    title: "Ground Balls",
+    icon: "glove",
   },
   {
-    id: 'batting-tee',
-    title: 'Batting Tee',
-    icon: 'bat',
+    id: "batting-tee",
+    title: "Batting Tee",
+    icon: "bat",
   },
   {
-    id: 'catching',
-    title: 'Catching',
-    icon: 'baseball',
+    id: "catching",
+    title: "Catching",
+    icon: "baseball",
   },
   {
-    id: 'quick-feet',
-    title: 'Quick Feet',
-    icon: 'run',
+    id: "quick-feet",
+    title: "Quick Feet",
+    icon: "run",
   },
-]
+];
 
 // Encouragement messages by milestone
 export const ENCOURAGEMENT_MESSAGES: Record<number, string[]> = {
@@ -143,24 +145,30 @@ export const ENCOURAGEMENT_MESSAGES: Record<number, string[]> = {
     "Great hustle! Finish strong!",
     "You're almost done! Keep it up!",
   ],
-}
+};
 
 export function getRandomEncouragement(milestone: number): string {
-  const messages = ENCOURAGEMENT_MESSAGES[milestone] || []
-  return messages[Math.floor(Math.random() * messages.length)] || "Keep going!"
+  const messages = ENCOURAGEMENT_MESSAGES[milestone] || [];
+  return messages[Math.floor(Math.random() * messages.length)] || "Keep going!";
 }
 
-export function calculateProgress(elapsedSeconds: number, durationMinutes: number): number {
-  const totalSeconds = durationMinutes * 60
-  return Math.min(Math.round((elapsedSeconds / totalSeconds) * 100), 100)
+export function calculateProgress(
+  elapsedSeconds: number,
+  durationMinutes: number,
+): number {
+  const totalSeconds = durationMinutes * 60;
+  return Math.min(Math.round((elapsedSeconds / totalSeconds) * 100), 100);
 }
 
-export function getNextMilestone(progress: number, shown: number[]): number | null {
-  const milestones = [25, 50, 75]
+export function getNextMilestone(
+  progress: number,
+  shown: number[],
+): number | null {
+  const milestones = [25, 50, 75];
   for (const milestone of milestones) {
     if (progress >= milestone && !shown.includes(milestone)) {
-      return milestone
+      return milestone;
     }
   }
-  return null
+  return null;
 }

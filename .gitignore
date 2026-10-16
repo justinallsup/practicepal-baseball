@@ -40,3 +40,8 @@ yarn-error.*
 /ios
 /android
 .vercel
+
+# Test output
+playwright-report/
+test-results/
+coverage/

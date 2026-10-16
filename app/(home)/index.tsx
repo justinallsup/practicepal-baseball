@@ -1,959 +1,229 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react'
+import React, { useState } from "react";
+import { View, Text } from "react-native";
+import { router } from "expo-router";
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Modal,
-  Animated,
-  Platform,
-  ScrollView,
-} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { router } from 'expo-router'
-import { useStore } from '../../lib/store'
-import { PracticeType } from '../../lib/store'
-import StreakBadge from '../../components/StreakBadge'
-import WeeklyTracker from '../../components/WeeklyTracker'
-import PracticeTypeSelector from '../../components/PracticeTypeSelector'
-import RewardProgress from '../../components/RewardProgress'
-import { PracticeModeSelector } from '../../components/PracticeModeSelector'
-import { PracticeTimerModal } from '../../components/PracticeTimerModal'
-import { QuickPracticeModal } from '../../components/QuickPracticeModal'
-import { AppIcon } from '../../components/AppIcon'
-import { Confetti } from '../../components/Confetti'
-import { Flame, Star, Target } from 'lucide-react-native'
+  Target,
+  ArrowUpRight,
+  Check,
+  Flame,
+  CircleDot,
+} from "lucide-react-native";
+import { useStore } from "../../lib/store";
+import { buildWeeklyPlan } from "../../lib/training-plan";
+import { dayLabel, getToday, getWeekDates } from "../../lib/utils";
 import {
-  requestNotificationPermission,
-  scheduleStreakReminder,
-} from '../../lib/notifications'
-
-type Feeling = 'easy' | 'solid' | 'hard'
-
-const FEELING_OPTIONS: { value: Feeling; icon: 'star' | 'baseball' | 'flame'; label: string }[] = [
-  { value: 'easy', icon: 'star' as const, label: 'Easy' },
-  { value: 'solid', icon: 'baseball' as const, label: 'Solid' },
-  { value: 'hard', icon: 'flame' as const, label: 'Hard' },
-]
-
-const FEELING_MESSAGES: Record<Feeling, string> = {
-  easy: 'Good session — keep building ⚾',
-  solid: 'Nice consistent effort 👊',
-  hard: 'Great work pushing today 💪',
-}
-
-export default function HomeScreen() {
-  const child = useStore(s => s.child)
-  const logs = useStore(s => s.logs)
-  const logPractice = useStore(s => s.logPractice)
-  const getCurrentStreak = useStore(s => s.getCurrentStreak)
-  const getBestStreak = useStore(s => s.getBestStreak)
-  const hasLoggedToday = useStore(s => s.hasLoggedToday)
-  const shouldShowPaywall = useStore(s => s.shouldShowPaywall)
-  const reward = useStore(s => s.reward)
-  const getRewardProgress = useStore(s => s.getRewardProgress)
-  const isRewardEarned = useStore(s => s.isRewardEarned)
-  const markRewardEarned = useStore(s => s.markRewardEarned)
-  const clearReward = useStore(s => s.clearReward)
-  const updateLastLogFeeling = useStore(s => s.updateLastLogFeeling)
-  const notificationsEnabled = useStore(s => s.notificationsEnabled)
-  const hasAskedNotificationPermission = useStore(s => s.hasAskedNotificationPermission)
-  const setNotificationsEnabled = useStore(s => s.setNotificationsEnabled)
-  const setHasAskedNotificationPermission = useStore(s => s.setHasAskedNotificationPermission)
-
-  const [showModal, setShowModal] = useState(false)
-  const [selectedTypes, setSelectedTypes] = useState<PracticeType[]>([])
-  const [loggedThisSession, setLoggedThisSession] = useState(false)
-  const [showRewardModal, setShowRewardModal] = useState(false)
-  const [selectedFeeling, setSelectedFeeling] = useState<Feeling | null>(null)
-  const [showNotifPrompt, setShowNotifPrompt] = useState(false)
-  const [showConfetti, setShowConfetti] = useState(false)
-  const [showPracticeModeSelector, setShowPracticeModeSelector] = useState(false)
-  const [showKidPracticeModal, setShowKidPracticeModal] = useState(false)
-
-  const [showQuickPracticeModal, setShowQuickPracticeModal] = useState(false)
-  // Animation refs
-  const successScale = useRef(new Animated.Value(0.8)).current
-  const confettiOpacity = useRef(new Animated.Value(0)).current
-  const buttonPulse = useRef(new Animated.Value(1)).current
-
-  const currentStreak = getCurrentStreak()
-  const bestStreak = getBestStreak()
-  const loggedToday = hasLoggedToday()
-  const paywallActive = shouldShowPaywall()
-
-  // Pulse animation for Start Practice button
-  useEffect(() => {
-    if (!loggedToday && !paywallActive) {
-      const pulse = Animated.loop(
-        Animated.sequence([
-          Animated.timing(buttonPulse, {
-            toValue: 1.04,
-            duration: 600,
-            useNativeDriver: true,
-          }),
-          Animated.timing(buttonPulse, {
-            toValue: 1,
-            duration: 600,
-            useNativeDriver: true,
-          }),
-          Animated.delay(2000),
-        ])
-      )
-      pulse.start()
-      return () => pulse.stop()
-    }
-  }, [loggedToday, paywallActive])
-
-  const handleLogPress = useCallback(async () => {
-    if (Platform.OS !== 'web') {
-      try {
-        const Haptics = await import('expo-haptics')
-        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-      } catch {}
-    }
-    // Show practice mode selector instead of instant completion
-    setShowPracticeModeSelector(true)
-  }, [])
-
-  const handleToggleType = useCallback((type: PracticeType) => {
-    setSelectedTypes(prev =>
-      prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
-    )
-  }, [])
-
-  const handleSelectKidMode = useCallback(() => {
-    setShowPracticeModeSelector(false)
-    setShowKidPracticeModal(true)
-  }, [])
-
-  const handleSelectQuickMode = useCallback(() => {
-    setShowPracticeModeSelector(false)
-    setShowQuickPracticeModal(true)
-  }, [])
-
-  const handlePracticeComplete = useCallback(() => {
-    setShowKidPracticeModal(false)
-    setShowQuickPracticeModal(false)
-    
-    // Now log the practice
-    const result = logPractice([])
-    
-    // Always mark as logged this session so success state shows
-    setLoggedThisSession(true)
-    setShowConfetti(true)
-    setTimeout(() => setShowConfetti(false), 2500)
-
-    // Reset animation values so they replay
-    successScale.setValue(0.8)
-    confettiOpacity.setValue(0)
-
-    if (!result.alreadyLoggedToday) {
-      // Check if reward was just earned
-      if (reward && !isRewardEarned()) {
-        const progress = getRewardProgress()
-        if (progress >= reward.targetValue) {
-          markRewardEarned()
-          setShowRewardModal(true)
-        }
-      }
-
-      // Re-schedule streak reminder if notifications are enabled
-      if (notificationsEnabled) {
-        const progress = getRewardProgress()
-        scheduleStreakReminder({
-          rewardName: reward?.rewardName,
-          remainingPractices: reward
-            ? Math.max(0, reward.targetValue - progress)
-            : undefined,
-          currentStreak: getCurrentStreak(),
-        }).catch(() => {})
-      }
-    }
-
-    // Always animate success
-    Animated.parallel([
-      Animated.spring(successScale, {
-        toValue: 1,
-        useNativeDriver: true,
-        damping: 12,
-        stiffness: 150,
-      }),
-      Animated.timing(confettiOpacity, {
-        toValue: 1,
-        duration: 400,
-        useNativeDriver: true,
-      }),
-    ]).start()
-  }, [
-    logPractice,
-    reward,
-    isRewardEarned,
-    getRewardProgress,
-    markRewardEarned,
-    notificationsEnabled,
-    getCurrentStreak,
-    successScale,
-    confettiOpacity,
-  ])
-
-  const handleDone = useCallback(() => {
-    setShowModal(false)
-    const result = logPractice(selectedTypes)
-    if (!result.alreadyLoggedToday) {
-      setLoggedThisSession(true)
-      setSelectedFeeling(null)
-
-      // Check if reward was just earned
-      if (reward && !isRewardEarned()) {
-        const progress = getRewardProgress()
-        if (progress >= reward.targetValue) {
-          markRewardEarned()
-          setShowRewardModal(true)
-        }
-      }
-
-      // Re-schedule streak reminder if notifications are enabled
-      if (notificationsEnabled) {
-        const progress = getRewardProgress()
-        scheduleStreakReminder({
-          rewardName: reward?.rewardName,
-          remainingPractices: reward
-            ? Math.max(0, reward.targetValue - progress)
-            : undefined,
-          currentStreak: getCurrentStreak(),
-        }).catch(() => {})
-      }
-
-      // Animate success
-      Animated.parallel([
-        Animated.spring(successScale, {
-          toValue: 1,
-          useNativeDriver: true,
-          damping: 12,
-          stiffness: 150,
-        }),
-        Animated.timing(confettiOpacity, {
-          toValue: 1,
-          duration: 400,
-          useNativeDriver: true,
-        }),
-      ]).start()
-    }
-  }, [
-    selectedTypes,
-    logPractice,
-    shouldShowPaywall,
-    reward,
-    isRewardEarned,
-    getRewardProgress,
-    markRewardEarned,
-    notificationsEnabled,
-    getCurrentStreak,
-    hasAskedNotificationPermission,
-  ])
-
-  const handleFeelingSelect = useCallback(
-    (feeling: Feeling) => {
-      setSelectedFeeling(feeling)
-      updateLastLogFeeling(feeling)
-    },
-    [updateLastLogFeeling]
-  )
-
-  const handleNotifYes = useCallback(async () => {
-    setShowNotifPrompt(false)
-    setHasAskedNotificationPermission(true)
-    const granted = await requestNotificationPermission()
-    if (granted) {
-      setNotificationsEnabled(true)
-      const progress = getRewardProgress()
-      scheduleStreakReminder({
-        rewardName: reward?.rewardName,
-        remainingPractices: reward
-          ? Math.max(0, reward.targetValue - progress)
-          : undefined,
-        currentStreak: getCurrentStreak(),
-      }).catch(() => {})
-    }
-  }, [
-    setHasAskedNotificationPermission,
-    setNotificationsEnabled,
-    getRewardProgress,
-    reward,
-    getCurrentStreak,
-  ])
-
-  const handleNotifNo = useCallback(() => {
-    setShowNotifPrompt(false)
-    setHasAskedNotificationPermission(true)
-  }, [setHasAskedNotificationPermission])
-
-  const newStreak = getCurrentStreak()
-  const rewardEarned = isRewardEarned()
-  const rewardProgress = getRewardProgress()
-  const remainingPractices = reward
-    ? Math.max(0, reward.targetValue - rewardProgress)
-    : null
-
+  Screen,
+  Brand,
+  Heading,
+  Card,
+  Button,
+  Stat,
+  C,
+  S,
+} from "../../components/ui";
+import PracticeFlow from "../../components/PracticeFlow";
+export default function Today() {
+  const state = useStore();
+  const [practice, setPractice] = useState(false);
+  const [guided, setGuided] = useState(false);
+  const dates = getWeekDates(),
+    today = getToday();
+  const weekDays = new Set(
+    state.logs.filter((l) => dates.includes(l.date)).map((l) => l.date),
+  );
+  const goal = state.child?.goalPerWeek ?? 3;
+  const done = weekDays.has(today);
+  const active = state.getActivePracticeSession(state.child?.id ?? "");
+  const plan = buildWeeklyPlan(state.improvementGoals, goal);
+  const next = plan[weekDays.size % plan.length];
   return (
-    <SafeAreaView style={styles.safe}>
-      <Confetti visible={showConfetti} />
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>{child?.name ?? 'Player'}'s Practice</Text>
-        <TouchableOpacity
-          style={styles.weeklyBtn}
-          onPress={() => router.push('/(home)/weekly')}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.weeklyBtnText}>📊</Text>
-        </TouchableOpacity>
+    <Screen>
+      <View style={S.between}>
+        <Brand />
+        <Text style={S.small}>
+          {new Date().toLocaleDateString(undefined, {
+            weekday: "long",
+            month: "short",
+            day: "numeric",
+          })}
+        </Text>
       </View>
-
-      {/* Streak badge */}
-      <StreakBadge currentStreak={currentStreak} bestStreak={bestStreak} />
-
-      {/* Weekly tracker */}
-      <View style={styles.trackerContainer}>
-        <WeeklyTracker logs={logs} />
-      </View>
-
-      {/* Reward progress card */}
-      <RewardProgress onAddReward={() => router.push('/onboarding/add-reward')} />
-
-      {/* Main area */}
-      <View style={styles.mainArea}>
-        {paywallActive && !loggedToday ? (
-          /* Paywall locked state */
-          <View style={styles.lockedContainer}>
-            <Text style={styles.lockedEmoji}>🔒</Text>
-            <Text style={styles.lockedTitle}>Keep the momentum going</Text>
-            <Text style={styles.lockedSub}>
-              Don't let the streak reset — subscribe to keep practicing
+      <Heading
+        eyebrow="WELCOME TO YOUR DUGOUT"
+        title={`Let’s go, ${state.child?.name ?? "player"}.`}
+        detail={
+          done
+            ? "You showed up today. That’s something to be proud of."
+            : "A little focus today. A habit that lasts all season."
+        }
+      />
+      <View style={S.grid}>
+        <View style={[S.hero, { flex: 1.4, minWidth: 260 }]}>
+          <View style={S.between}>
+            <Text style={[S.eyebrow, { color: "#E9AF92" }]}>
+              {done ? "TODAY’S WIN" : "YOUR NEXT SESSION"}
             </Text>
-            <TouchableOpacity
-              style={styles.paywallButton}
-              onPress={() => router.push('/(home)/paywall')}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.paywallButtonText}>Keep the streak alive →</Text>
-            </TouchableOpacity>
+            {done ? (
+              <Check color="#E9AF92" size={24} />
+            ) : (
+              <Target color="#E9AF92" size={24} />
+            )}
           </View>
-        ) : loggedToday || loggedThisSession ? (
-          /* Success state */
-          <ScrollView
-            style={{ flex: 1, width: '100%' }}
-            contentContainerStyle={styles.successScroll}
-            showsVerticalScrollIndicator={false}
-            bounces={true}
+          <Text style={[S.title, S.white, { fontSize: 30, lineHeight: 36 }]}>
+            {done
+              ? "Good work.\nKeep the good feeling."
+              : "The next good rep\nstarts here."}
+          </Text>
+          <Text style={[S.body, S.light]}>
+            {active
+              ? "Your saved timer is ready when you are."
+              : done
+                ? "Rest is part of getting better. Explore your progress or plan your next session."
+                : "Follow your plan, start a timer, or log a session you’ve already completed."}
+          </Text>
+          <Button
+            title={
+              active
+                ? "Resume practice"
+                : done
+                  ? "Practice again"
+                  : "Start practice"
+            }
+            onPress={() => {
+              setGuided(false);
+              setPractice(true);
+            }}
+          />
+          <Text style={[S.small, S.light]}>
+            10 points per practice day · Your pace. Your progress.
+          </Text>
+        </View>
+        <Card style={{ flex: 1, minWidth: 260 }}>
+          <View style={S.between}>
+            <Text style={S.h3}>This week</Text>
+            <Text style={S.eyebrow}>
+              {weekDays.size} / {goal} DAYS
+            </Text>
+          </View>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              gap: 5,
+              paddingVertical: 10,
+            }}
           >
-            <Animated.View
-              style={[
-                styles.successContainer,
-              ]}
-            >
-              <Text style={styles.successEmoji}>🏆</Text>
-              <Text style={styles.successTitle}>Practice Complete!</Text>
-              <Text style={styles.successStreak}>
-                🔥 {newStreak}-day streak — keep it alive!
-              </Text>
-              {newStreak >= 2 && (
-                <View style={styles.motivationBanner}>
-                  <Text style={styles.motivationText}>
-                    {newStreak} days in a row — keep it going!
-                  </Text>
-                </View>
-              )}
-              {loggedThisSession && reward && !rewardEarned && (
-                <Text style={styles.rewardNudge}>
-                  {remainingPractices === 1
-                    ? `Only 1 more to earn ${reward.rewardName}! 🎯`
-                    : `${remainingPractices} more to earn ${reward.rewardName} 🎯`}
+            {dates.map((d) => (
+              <View key={d} style={{ alignItems: "center", gap: 9 }}>
+                <Text style={[S.small, { fontSize: 10 }]}>
+                  {dayLabel(d)[0]}
                 </Text>
-              )}
-              {loggedThisSession && (
-                <Text style={styles.confetti}>🎉 ⭐ 🔥 ⭐ 🎉</Text>
-              )}
-            </Animated.View>
-
-            {/* Feeling selector — shown only when just logged and no feeling picked yet */}
-            {loggedThisSession && selectedFeeling === null && (
-              <View style={styles.feelingSection}>
-                <Text style={styles.feelingTitle}>How was practice today?</Text>
-                <View style={styles.feelingRow}>
-                  {FEELING_OPTIONS.map(opt => (
-                    <TouchableOpacity
-                      key={opt.value}
-                      style={styles.feelingBtn}
-                      onPress={() => handleFeelingSelect(opt.value)}
-                      activeOpacity={0.75}
-                    >
-                      <AppIcon name={opt.icon} size={24} color={selectedFeeling === opt.value ? '#10b981' : '#94a3b8'} />
-                      <Text style={styles.feelingLabel}>{opt.label}</Text>
-                    </TouchableOpacity>
-                  ))}
+                <View
+                  accessibilityLabel={`${dayLabel(d)} ${weekDays.has(d) ? "practiced" : "not logged"}${d === today ? ", today" : ""}`}
+                  style={{
+                    width: 30,
+                    height: 36,
+                    borderRadius: 10,
+                    backgroundColor: weekDays.has(d) ? C.green : C.cream,
+                    borderWidth: d === today ? 2 : 0,
+                    borderColor: C.navy,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {weekDays.has(d) ? (
+                    <Check color={C.white} size={17} />
+                  ) : (
+                    <Text style={S.small}>{Number(d.slice(-2))}</Text>
+                  )}
                 </View>
               </View>
-            )}
-
-            {/* Feeling confirmation message */}
-            {loggedThisSession && selectedFeeling !== null && (
-              <View style={styles.feelingConfirm}>
-                <Text style={styles.feelingConfirmText}>{FEELING_MESSAGES[selectedFeeling]}</Text>
-              </View>
-            )}
-
-            {/* Next step section */}
-            <View style={styles.nextStepSection}>
-              <View style={styles.nextStepDivider} />
-              <Text style={styles.nextStepHeading}>Next step:</Text>
-              <Text style={styles.nextStepText}>
-                Come back tomorrow to keep the streak alive 🔥
-              </Text>
-              {reward && !rewardEarned && remainingPractices !== null && remainingPractices > 0 && (
-                <Text style={styles.nextStepReward}>
-                  {remainingPractices === 1
-                    ? `Only 1 more practice to earn ${reward.rewardName} 🎯`
-                    : `${remainingPractices} more practice${remainingPractices === 1 ? '' : 's'} to earn ${reward.rewardName} 🎯`}
-                </Text>
-              )}
-            </View>
-          </ScrollView>
-        ) : (
-          /* Log button state */
-          <View style={styles.logContainer}>
-            <Animated.View style={{ transform: [{ scale: buttonPulse }] }}>
-              <TouchableOpacity
-                style={styles.logButton}
-                onPress={handleLogPress}
-                activeOpacity={0.85}
-              >
-                <AppIcon name="baseball" size={24} color="#fff" />
-                <Text style={styles.logButtonText}>Start Practice</Text>
-              </TouchableOpacity>
-            </Animated.View>
-            <Text style={styles.logSubtitle}>Let's go — tap to start ⚾</Text>
+            ))}
           </View>
-        )}
-      </View>
-
-      {/* Practice type selector modal */}
-      <Modal
-        visible={showModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalSheet}>
-            <View style={styles.modalHandle} />
-            <Text style={styles.modalTitle}>What did you work on?</Text>
-            <Text style={styles.modalSub}>Select all that apply (optional)</Text>
-
-            <PracticeTypeSelector
-              selected={selectedTypes}
-              onToggle={handleToggleType}
-            />
-
-            <TouchableOpacity
-              style={styles.doneButton}
-              onPress={handleDone}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.doneButtonText}>Done ✓</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.skipButton}
-              onPress={handleDone}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.skipButtonText}>Skip</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Reward earned modal */}
-      <Modal visible={showRewardModal} transparent animationType="fade">
-        <View style={styles.rewardModalOverlay}>
-          <View style={styles.rewardModalCard}>
-            <AppIcon name="trophy" size={64} color="#fbbf24" />
-            <Text style={styles.rewardModalTitle}>Reward Earned!</Text>
-            <Text style={styles.rewardModalReward}>{reward?.rewardName}</Text>
-            <Text style={styles.rewardModalSub}>{child?.name} earned this reward!</Text>
-            <TouchableOpacity
-              onPress={() => {
-                clearReward()
-                setShowRewardModal(false)
+          <View
+            style={{ height: 6, backgroundColor: C.cream, borderRadius: 8 }}
+          >
+            <View
+              style={{
+                width: `${Math.min(weekDays.size / goal, 1) * 100}%`,
+                height: 6,
+                borderRadius: 8,
+                backgroundColor: C.green,
               }}
-              style={styles.rewardModalBtn}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.rewardModalBtnText}>Set New Reward</Text>
-            </TouchableOpacity>
+            />
           </View>
-        </View>
-      </Modal>
-
-      {/* Notification permission soft prompt */}
-      <Modal visible={showNotifPrompt} transparent animationType="fade">
-        <View style={styles.notifModalOverlay}>
-          <View style={styles.notifModalCard}>
-            <Text style={styles.notifModalEmoji}>🔔</Text>
-            <Text style={styles.notifModalTitle}>Want a reminder so you don't break your streak?</Text>
-            <Text style={styles.notifModalSub}>
-              We'll ping you at 6pm so practice stays on track.
+          <Text style={S.body}>
+            {weekDays.size >= goal
+              ? "Weekly goal complete. Enjoy the win."
+              : `${Math.max(0, goal - weekDays.size)} more practice days toward your weekly goal.`}
+          </Text>
+          <View style={S.rule} />
+          <View style={S.row}>
+            <Stat value={state.getCurrentStreak()} label="Day streak" />
+            <Stat value={state.totalPoints} label="Reward points" />
+          </View>
+        </Card>
+      </View>
+      <View style={S.between}>
+        <Text style={S.h2}>A plan you can actually follow</Text>
+        <Button
+          title="See full plan"
+          secondary
+          onPress={() => router.push("/(home)/training")}
+        />
+      </View>
+      <Card>
+        <View style={S.between}>
+          <View style={{ gap: 8, flex: 1, minWidth: 200 }}>
+            <Text style={S.eyebrow}>SUGGESTED NEXT SESSION</Text>
+            <Text style={S.h3}>{next.map((d) => d.title).join(" + ")}</Text>
+            <Text style={S.body}>
+              {next.reduce((n, d) => n + d.minutes, 0)} min suggested · Adapt to
+              your player’s energy and schedule.
             </Text>
-            <TouchableOpacity
-              style={styles.notifYesBtn}
-              onPress={handleNotifYes}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.notifYesBtnText}>Yes, remind me</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.notifNoBtn}
-              onPress={handleNotifNo}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.notifNoBtnText}>No thanks</Text>
-            </TouchableOpacity>
           </View>
+          <Button
+            title="Open guided practice"
+            onPress={() => {
+              setGuided(true);
+              setPractice(true);
+            }}
+          />
         </View>
-      </Modal>
-
-      {/* Practice Mode Selector */}
-      <PracticeModeSelector
-        visible={showPracticeModeSelector}
-        onSelectKidMode={handleSelectKidMode}
-        onSelectQuickMode={handleSelectQuickMode}
-        onCancel={() => setShowPracticeModeSelector(false)}
+      </Card>
+      <View style={S.grid}>
+        <Card style={{ flex: 1, minWidth: 240 }}>
+          <Flame size={23} color={C.red} />
+          <Text style={S.h3}>Small wins add up.</Text>
+          <Text style={S.body}>
+            {new Set(state.logs.map((l) => l.date)).size} practice days
+            recorded. See your milestones and personal benchmarks.
+          </Text>
+          <Button
+            secondary
+            title="View progress"
+            onPress={() => router.push("/(home)/weekly")}
+          />
+        </Card>
+        <Card style={{ flex: 1, minWidth: 240 }}>
+          <CircleDot color={C.green} size={23} />
+          <Text style={S.h3}>Make it a family thing.</Text>
+          <Text style={S.body}>
+            Choose a reward together. Players request it; parents give the final
+            thumbs-up.
+          </Text>
+          <Button
+            secondary
+            title="Explore rewards"
+            onPress={() => router.push("/(home)/store")}
+          />
+        </Card>
+      </View>
+      <PracticeFlow
+        visible={practice}
+        onClose={() => setPractice(false)}
+        drillIds={guided ? next.map((d) => d.id) : []}
       />
-
-      {/* Kid Mode Practice Timer */}
-      <PracticeTimerModal
-        visible={showKidPracticeModal}
-        onComplete={handlePracticeComplete}
-        onCancel={() => setShowKidPracticeModal(false)}
-      />
-
-      {/* Quick Practice Timer */}
-      <QuickPracticeModal
-        visible={showQuickPracticeModal}
-        onComplete={handlePracticeComplete}
-        onCancel={() => setShowQuickPracticeModal(false)}
-      />
-
-    </SafeAreaView>
-  )
+    </Screen>
+  );
 }
-
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: '#f8fafc',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-  },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#0f172a',
-  },
-  weeklyBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: '#eff6ff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  weeklyBtnText: {
-    fontSize: 20,
-  },
-  trackerContainer: {
-    marginTop: 8,
-    marginBottom: 8,
-  },
-  mainArea: {
-    flex: 1,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    paddingHorizontal: 0,
-    width: '100%',
-  },
-  logContainer: {
-    alignItems: 'center',
-    gap: 16,
-  },
-  logButton: {
-    width: 160,
-    height: 160,
-    borderRadius: 80,
-    backgroundColor: '#1e40af',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    shadowColor: '#1e40af',
-    shadowOpacity: 0.35,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 10,
-  },
-  logButtonEmoji: {
-    fontSize: 48,
-  },
-  logButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  logSubtitle: {
-    fontSize: 15,
-    color: '#94a3b8',
-    textAlign: 'center',
-  },
-  successScroll: {
-    flexGrow: 1,
-    alignItems: 'center',
-    paddingBottom: 32,
-  },
-  successContainer: {
-    alignItems: 'center',
-    gap: 6,
-    paddingTop: 16,
-    paddingHorizontal: 20,
-    width: '100%',
-  },
-  successEmoji: {
-    fontSize: 52,
-  },
-  successTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#0f172a',
-    textAlign: 'center',
-  },
-  successStreak: {
-    fontSize: 15,
-    color: '#64748b',
-    textAlign: 'center',
-  },
-  motivationBanner: {
-    backgroundColor: '#fef3c7',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 7,
-    marginTop: 4,
-  },
-  motivationText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#92400e',
-    textAlign: 'center',
-  },
-  rewardNudge: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1e40af',
-    textAlign: 'center',
-    marginTop: 4,
-  },
-  confetti: {
-    fontSize: 22,
-    marginTop: 4,
-    letterSpacing: 3,
-  },
-  // Feeling selector
-  feelingSection: {
-    marginTop: 10,
-    alignItems: 'center',
-    gap: 8,
-    width: '100%',
-    paddingHorizontal: 20,
-  },
-  feelingTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#475569',
-    textAlign: 'center',
-  },
-  feelingRow: {
-    flexDirection: 'row',
-    gap: 8,
-    justifyContent: 'center',
-  },
-  feelingBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: '#f1f5f9',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  feelingEmoji: {
-    fontSize: 18,
-  },
-  feelingLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#334155',
-  },
-  feelingConfirm: {
-    backgroundColor: '#eff6ff',
-    borderRadius: 12,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    marginTop: 4,
-  },
-  feelingConfirmText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1e40af',
-    textAlign: 'center',
-  },
-  // Next step section
-  nextStepSection: {
-    alignItems: 'center',
-    gap: 6,
-    width: '100%',
-    marginTop: 10,
-    paddingHorizontal: 20,
-  },
-  nextStepDivider: {
-    width: '80%',
-    height: 1,
-    backgroundColor: '#e2e8f0',
-    marginBottom: 8,
-  },
-  nextStepHeading: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#94a3b8',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  nextStepText: {
-    fontSize: 13,
-    color: '#475569',
-    textAlign: 'center',
-    lineHeight: 18,
-  },
-  nextStepReward: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1e40af',
-    textAlign: 'center',
-    marginTop: 2,
-  },
-  lockedContainer: {
-    alignItems: 'center',
-    gap: 14,
-    paddingHorizontal: 16,
-  },
-  lockedEmoji: {
-    fontSize: 56,
-  },
-  lockedTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#0f172a',
-    textAlign: 'center',
-  },
-  lockedSub: {
-    fontSize: 15,
-    color: '#64748b',
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  paywallButton: {
-    backgroundColor: '#1e40af',
-    borderRadius: 16,
-    paddingHorizontal: 28,
-    paddingVertical: 16,
-    marginTop: 8,
-  },
-  paywallButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  // Practice type modal
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.4)',
-  },
-  modalSheet: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    padding: 24,
-    paddingBottom: 40,
-    gap: 8,
-  },
-  modalHandle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#e2e8f0',
-    alignSelf: 'center',
-    marginBottom: 12,
-  },
-  modalTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#0f172a',
-    textAlign: 'center',
-  },
-  modalSub: {
-    fontSize: 14,
-    color: '#94a3b8',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  doneButton: {
-    backgroundColor: '#1e40af',
-    borderRadius: 16,
-    height: 56,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 16,
-  },
-  doneButtonText: {
-    color: '#fff',
-    fontSize: 17,
-    fontWeight: '700',
-  },
-  skipButton: {
-    height: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  skipButtonText: {
-    fontSize: 15,
-    color: '#94a3b8',
-  },
-  // Reward earned modal
-  rewardModalOverlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    padding: 32,
-  },
-  rewardModalCard: {
-    backgroundColor: '#fff',
-    borderRadius: 24,
-    padding: 32,
-    alignItems: 'center',
-    gap: 8,
-    width: '100%',
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 24,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 16,
-  },
-  rewardModalEmoji: {
-    fontSize: 56,
-    marginBottom: 4,
-  },
-  rewardModalTitle: {
-    fontSize: 28,
-    fontWeight: '900',
-    color: '#0f172a',
-  },
-  rewardModalReward: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1e40af',
-  },
-  rewardModalSub: {
-    fontSize: 15,
-    color: '#64748b',
-    textAlign: 'center',
-    marginTop: 4,
-    marginBottom: 8,
-  },
-  rewardModalBtn: {
-    backgroundColor: '#1e40af',
-    borderRadius: 14,
-    paddingHorizontal: 28,
-    paddingVertical: 14,
-    marginTop: 8,
-  },
-  rewardModalBtnText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  // Notification soft prompt modal
-  notifModalOverlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    padding: 32,
-  },
-  notifModalCard: {
-    backgroundColor: '#fff',
-    borderRadius: 24,
-    padding: 32,
-    alignItems: 'center',
-    gap: 10,
-    width: '100%',
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 12,
-  },
-  notifModalEmoji: {
-    fontSize: 48,
-    marginBottom: 4,
-  },
-  notifModalTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#0f172a',
-    textAlign: 'center',
-    lineHeight: 26,
-  },
-  notifModalSub: {
-    fontSize: 14,
-    color: '#64748b',
-    textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: 4,
-  },
-  notifYesBtn: {
-    backgroundColor: '#1e40af',
-    borderRadius: 14,
-    paddingHorizontal: 28,
-    paddingVertical: 14,
-    width: '100%',
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  notifYesBtnText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  notifNoBtn: {
-    height: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  notifNoBtnText: {
-    fontSize: 15,
-    color: '#94a3b8',
-  },
-})

@@ -1,539 +1,429 @@
-import React from 'react'
+import React, { useState } from "react";
+import { View, Text, Platform, Share } from "react-native";
+import { router } from "expo-router";
+import { useStore, type Child } from "../../lib/store";
+import { METRICS, type Metric } from "../../lib/progress";
+import { getWeekDates } from "../../lib/utils";
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Alert,
-  Platform,
-} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useStore } from '../../lib/store'
-import { AppIcon } from '../../components/AppIcon'
-import type { AppIconName } from '../../components/AppIcon'
-
-const GEAR_ITEMS: { icon: AppIconName; name: string; price: string; url: string }[] = [
-  { icon: 'bat', name: 'Youth Bat', price: '$49.99', url: 'https://www.amazon.com/s?k=youth+baseball+bat' },
-  { icon: 'glove', name: 'Batting Gloves', price: '$24.99', url: 'https://www.amazon.com/s?k=youth+batting+gloves' },
-  { icon: 'target', name: 'Training Gear', price: '$34.99', url: 'https://www.amazon.com/s?k=baseball+training+equipment' },
-]
-
-function openURL(url: string) {
-  if (Platform.OS === 'web') {
-    if (typeof window !== 'undefined') {
-      window.open(url, '_blank')
-    }
-  } else {
-    import('expo-linking').then(({ default: Linking }) => {
-      Linking.openURL(url).catch(() => {})
-    }).catch(() => {})
-  }
-}
-
-function copyToClipboard(text: string) {
-  if (Platform.OS === 'web') {
-    if (typeof navigator !== 'undefined' && navigator.clipboard) {
-      navigator.clipboard.writeText(text).catch(() => {})
-    }
-  } else {
-    // React Native clipboard
+  cancelStreakReminders,
+  cancelAllPracticeReminders,
+  requestNotificationPermission,
+  scheduleStreakReminder,
+} from "../../lib/notifications";
+import ParentGate from "../../components/ParentGate";
+import {
+  Screen,
+  Heading,
+  Card,
+  Field,
+  Button,
+  Chip,
+  S,
+  C,
+} from "../../components/ui";
+function Controls() {
+  const state = useStore();
+  const [name, setName] = useState(state.child?.name ?? ""),
+    [goal, setGoal] = useState<Child["goalPerWeek"]>(
+      state.child?.goalPerWeek ?? 3,
+    );
+  const [metric, setMetric] = useState<Metric>("contact"),
+    [value, setValue] = useState(""),
+    [note, setNote] = useState(""),
+    [message, setMessage] = useState(""),
+    [error, setError] = useState("");
+  const [familyReward, setFamilyReward] = useState(
+    state.reward?.rewardName ?? "",
+  );
+  const [deleteText, setDeleteText] = useState(""),
+    [confirmReset, setConfirmReset] = useState(false),
+    [busy, setBusy] = useState(false);
+  const week = new Set(
+    state.logs
+      .filter((l) => getWeekDates().includes(l.date))
+      .map((l) => l.date),
+  ).size;
+  async function notify() {
+    setBusy(true);
+    setError("");
     try {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const { Clipboard } = require('react-native')
-      if (Clipboard) Clipboard.setString(text)
-    } catch {}
-  }
-}
-
-export default function ParentScreen() {
-  const redemptionRequests = useStore(s => s.redemptionRequests)
-  const approveRedemption = useStore(s => s.approveRedemption)
-  const denyRedemption = useStore(s => s.denyRedemption)
-  const getWeekLogs = useStore(s => s.getWeekLogs)
-  const getCurrentStreak = useStore(s => s.getCurrentStreak)
-  const totalPoints = useStore(s => s.totalPoints)
-  const inviteCode = useStore(s => s.inviteCode)
-  const notificationsEnabled = useStore(s => s.notificationsEnabled)
-  const setNotificationsEnabled = useStore(s => s.setNotificationsEnabled)
-
-  const weekLogs = getWeekLogs()
-  const streak = getCurrentStreak()
-  const weekPractices = new Set(weekLogs.map(l => l.date)).size
-  const reward = useStore.getState().reward
-  const rewardProgress = reward ? useStore.getState().getRewardProgress() : 0
-
-  // Weekly points (approximation: 10 pts per practice this week)
-  const weekPoints = weekPractices * 10
-
-  const pendingRequests = redemptionRequests.filter(r => r.status === 'pending')
-
-  const handleApprove = (id: string, itemName: string) => {
-    Alert.alert('Approve Request', `Approve "${itemName}"?`, [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Approve ✓', onPress: () => approveRedemption(id) },
-    ])
-  }
-
-  const handleDeny = (id: string, itemName: string) => {
-    Alert.alert('Deny Request', `Deny "${itemName}"? Points will be refunded.`, [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Deny', style: 'destructive', onPress: () => denyRedemption(id) },
-    ])
-  }
-
-  const handleToggleNotif = () => {
-    setNotificationsEnabled(!notificationsEnabled)
-  }
-
-  const handleCopyCode = () => {
-    copyToClipboard(inviteCode)
-    Alert.alert('Copied!', `Invite code ${inviteCode} copied to clipboard.`)
-  }
-
-  const handleShareCode = () => {
-    const message = `Join me on PracticePal Baseball! Use code ${inviteCode} to get started.`
-    if (Platform.OS === 'web') {
-      if (typeof navigator !== 'undefined' && (navigator as any).share) {
-        (navigator as any).share({ text: message }).catch(() => {})
-      } else {
-        copyToClipboard(message)
-        Alert.alert('Copied!', 'Share message copied to clipboard.')
-      }
-    } else {
-      import('expo-linking').then(() => {
-        Alert.alert('Share', message, [{ text: 'OK' }])
-      }).catch(() => {})
+      if (state.notificationsEnabled) {
+        await cancelStreakReminders();
+        state.setNotificationsEnabled(false);
+        setMessage("Daily reminders turned off.");
+      } else if (await requestNotificationPermission()) {
+        await scheduleStreakReminder({
+          currentStreak: state.getCurrentStreak(),
+        });
+        state.setNotificationsEnabled(true);
+        setMessage("Reminder scheduled for 6pm on this device.");
+      } else
+        setError(
+          "Notifications are not allowed. You can enable them in device settings.",
+        );
+    } catch {
+      setError("The reminder could not be updated. Please try again.");
+    } finally {
+      setBusy(false);
     }
   }
-
+  async function exportData() {
+    const data = JSON.stringify(
+      {
+        format: "PracticePal export",
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        child: state.child,
+        logs: state.logs,
+        practiceSessions: state.practiceSessions,
+        benchmarks: state.benchmarks,
+        reward: state.reward,
+        rewards: state.redemptionRequests,
+        practiceSettings: state.practiceSettings,
+        points: state.totalPoints,
+        pointsHistory: state.pointsHistory,
+        goals: state.improvementGoals,
+      },
+      null,
+      2,
+    );
+    try {
+      if (Platform.OS === "web") {
+        const url = URL.createObjectURL(
+          new Blob([data], { type: "application/json" }),
+        );
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "practicepal-records.json";
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        setMessage("Your records have been exported.");
+      } else {
+        await Share.share({ message: data });
+        setMessage("Export opened in your device’s share sheet.");
+      }
+    } catch {
+      setError("Could not export. Please try again.");
+    }
+  }
+  function saveBenchmark() {
+    setError("");
+    if (
+      value.trim() === "" ||
+      !state.addBenchmark(metric, Number(value), note)
+    ) {
+      setError("Enter a whole number from 0 to 10.");
+      return;
+    }
+    setValue("");
+    setNote("");
+    setMessage("Benchmark saved. View the trend in Progress.");
+  }
+  async function reset() {
+    if (deleteText !== "DELETE") return;
+    await cancelAllPracticeReminders();
+    state.reset();
+    router.replace("/onboarding");
+  }
   return (
-    <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>Parent Dashboard 👨‍👩‍👧</Text>
-
-        {/* Pending Approvals */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Pending Approvals</Text>
-          {pendingRequests.length === 0 ? (
-            <Text style={styles.emptyText}>No pending requests ✓</Text>
-          ) : (
-            pendingRequests.map(req => (
-              <View key={req.id} style={styles.approvalRow}>
-                <View style={styles.approvalInfo}>
-                  <Text style={styles.approvalName}>{req.itemName}</Text>
-                  <Text style={styles.approvalPoints}>⭐ {req.pointCost} pts</Text>
-                </View>
-                <View style={styles.approvalButtons}>
-                  <TouchableOpacity
-                    style={styles.approveBtn}
-                    onPress={() => handleApprove(req.id, req.itemName)}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.approveBtnText}>✓</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.denyBtn}
-                    onPress={() => handleDeny(req.id, req.itemName)}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.denyBtnText}>✗</Text>
-                  </TouchableOpacity>
+    <Screen>
+      <Heading
+        eyebrow="IN THEIR CORNER"
+        title="The parent dugout."
+        detail="Set a realistic goal, celebrate the effort, and keep the experience right for your family."
+      />
+      {message ? (
+        <Text role="status" style={[S.body, { color: C.green }]}>
+          {message}
+        </Text>
+      ) : null}
+      {error ? (
+        <Text role="alert" style={S.error}>
+          {error}
+        </Text>
+      ) : null}
+      <View style={S.hero}>
+        <Text style={[S.eyebrow, { color: "#E9AF92" }]}>THIS WEEK’S RECAP</Text>
+        <Text style={[S.h2, S.white]}>
+          {state.child?.name} practiced on {week} {week === 1 ? "day" : "days"}.
+        </Text>
+        <Text style={[S.body, S.light]}>
+          {week >= goal
+            ? "The weekly goal is complete. Celebrate the effort together."
+            : `${Math.max(0, goal - week)} more days toward the goal. Adjust it if your family needs a lighter week.`}
+        </Text>
+        <Text style={[S.small, S.light]}>
+          Rest days count as looking after your player, even when they don’t add
+          points.
+        </Text>
+      </View>
+      <Card>
+        <Text style={S.h2}>Reward approvals</Text>
+        {state.redemptionRequests.filter((r) => r.status === "pending")
+          .length === 0 ? (
+          <Text style={S.body}>
+            You’re all caught up. New requests will appear here on this device.
+          </Text>
+        ) : (
+          state.redemptionRequests
+            .filter((r) => r.status === "pending")
+            .map((r) => (
+              <View key={r.id} style={{ gap: 12 }}>
+                <Text style={S.h3}>
+                  {r.itemName} · {r.pointCost} points
+                </Text>
+                <View style={S.row}>
+                  <Button
+                    title={`Approve ${r.itemName}`}
+                    onPress={() => {
+                      state.approveRedemption(r.id);
+                      setMessage(
+                        "Reward approved. Arrange it together as a family.",
+                      );
+                    }}
+                  />
+                  <Button
+                    secondary
+                    title={`Decline ${r.itemName}`}
+                    onPress={() => {
+                      state.denyRedemption(r.id);
+                      setMessage("Request declined and points refunded.");
+                    }}
+                  />
                 </View>
               </View>
             ))
-          )}
-        </View>
-
-        {/* Weekly Progress Highlights */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Weekly Progress</Text>
-          <View style={styles.highlightList}>
-            <Text style={styles.highlightItem}>✔ Practiced {weekPractices}x this week</Text>
-            {streak > 0 && <Text style={styles.highlightItem}>✔ Streak: {streak} day{streak !== 1 ? 's' : ''}</Text>}
-            {reward && rewardProgress > 0 && (
-              <Text style={styles.highlightItem}>
-                ✔ {reward.targetValue - rewardProgress <= 2 ? '1 reward almost earned' : `${rewardProgress}/${reward.targetValue} toward ${reward.rewardName}`}
-              </Text>
-            )}
-          </View>
-        </View>
-
-        {/* Insight Box */}
-        <View style={styles.insightBox}>
-          <Text style={styles.insightText}>💡 Kids who practice 3x/week improve the fastest</Text>
-        </View>
-
-        {/* This Week Summary */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>This Week</Text>
-          <View style={styles.statsRow}>
-            <View style={styles.statCard}>
-              <Text style={styles.statNumber}>{weekPractices}</Text>
-              <Text style={styles.statLabel}>Practices</Text>
-            </View>
-            <View style={styles.statCard}>
-              <Text style={styles.statNumber}>{weekPoints}</Text>
-              <Text style={styles.statLabel}>Points Earned</Text>
-            </View>
-            <View style={styles.statCard}>
-              <Text style={styles.statNumber}>{streak}</Text>
-              <Text style={styles.statLabel}>Day Streak</Text>
-            </View>
-          </View>
-          <View style={styles.totalPointsRow}>
-            <Text style={styles.totalPointsLabel}>Total Points:</Text>
-            <Text style={styles.totalPointsValue}>⭐ {totalPoints} pts</Text>
-          </View>
-        </View>
-
-        {/* Gear Shop */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Gear Shop</Text>
-          <Text style={styles.sectionSub}>Affiliate links — we earn a small commission</Text>
-          <View style={styles.gearGrid}>
-            {GEAR_ITEMS.map(item => (
-              <TouchableOpacity
-                key={item.name}
-                style={styles.gearCard}
-                onPress={() => openURL(item.url)}
-                activeOpacity={0.8}
-              >
-                <AppIcon name={item.icon} size={28} color="#475569" />
-                <Text style={styles.gearName}>{item.name}</Text>
-                <Text style={styles.gearPrice}>{item.price}</Text>
-                <Text style={styles.shopBtn}>Shop →</Text>
-              </TouchableOpacity>
+        )}
+      </Card>
+      <Card>
+        <Text style={S.h2}>A family goal reward</Text>
+        <Text style={S.body}>
+          Choose something together for completing the weekly practice goal.
+          This is separate from points rewards.
+        </Text>
+        <Field
+          label="Family reward"
+          value={familyReward}
+          onChangeText={setFamilyReward}
+          maxLength={80}
+          placeholder="A picnic at the park"
+        />
+        <Button
+          title="Set family goal reward"
+          disabled={!familyReward.trim()}
+          onPress={() => {
+            state.setReward({
+              childName: state.child?.name ?? "Player",
+              rewardName: familyReward,
+              targetType: "weekly_goal",
+              targetValue: goal,
+            });
+            state.markRewardEarned();
+            setMessage("Family reward saved. Track it in Rewards.");
+          }}
+        />
+        {state.reward && (
+          <Button
+            secondary
+            title="Clear family goal reward"
+            onPress={() => {
+              state.clearReward();
+              setFamilyReward("");
+            }}
+          />
+        )}
+      </Card>
+      <View style={S.grid}>
+        <Card style={{ flex: 1, minWidth: 260 }}>
+          <Text style={S.h2}>Their plan, your call</Text>
+          <Field
+            label="Player nickname"
+            value={name}
+            onChangeText={setName}
+            maxLength={30}
+          />
+          <Text style={S.h3}>Weekly practice goal</Text>
+          <View style={S.row}>
+            {([3, 4, 5, 7] as const).map((d) => (
+              <Chip
+                key={d}
+                title={`${d} days`}
+                selected={goal === d}
+                onPress={() => setGoal(d)}
+              />
             ))}
           </View>
-        </View>
-
-        {/* Invite Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Invite a Teammate</Text>
-          <Text style={styles.inviteSubtext}>Earn +100 points per friend who joins</Text>
-          <View style={styles.codeBox}>
-            <Text style={styles.codeLabel}>Your invite code:</Text>
-            <Text style={styles.codeText}>{inviteCode}</Text>
+          <Text style={S.h3}>Training focus</Text>
+          <View style={S.row}>
+            {["Hitting", "Fielding", "Throwing", "Footwork"].map((g) => (
+              <Chip
+                key={g}
+                title={g}
+                selected={state.improvementGoals.includes(g)}
+                onPress={() =>
+                  state.setImprovementGoals(
+                    state.improvementGoals.includes(g)
+                      ? state.improvementGoals.filter((x) => x !== g)
+                      : [...state.improvementGoals, g],
+                  )
+                }
+              />
+            ))}
           </View>
-          <View style={styles.inviteButtons}>
-            <TouchableOpacity style={styles.copyBtn} onPress={handleCopyCode} activeOpacity={0.8}>
-              <Text style={styles.copyBtnText}>Copy Code</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.shareBtn} onPress={handleShareCode} activeOpacity={0.8}>
-              <Text style={styles.shareBtnText}>Share ↗</Text>
-            </TouchableOpacity>
+          <Button
+            title="Save player settings"
+            disabled={!name.trim()}
+            onPress={() => {
+              state.updateChild({ name, goalPerWeek: goal });
+              setMessage(
+                "Player settings saved. Your training plan is updated.",
+              );
+            }}
+          />
+        </Card>
+        <Card style={{ flex: 1, minWidth: 260 }}>
+          <Text style={S.h2}>Record a skill benchmark</Text>
+          <View style={S.row}>
+            {(Object.keys(METRICS) as Metric[]).map((m) => (
+              <Chip
+                key={m}
+                title={METRICS[m].label}
+                selected={metric === m}
+                onPress={() => setMetric(m)}
+              />
+            ))}
           </View>
+          <Text style={S.body}>{METRICS[metric].instruction}</Text>
+          <Field
+            label="Successful attempts (0–10)"
+            value={value}
+            onChangeText={setValue}
+            keyboardType="number-pad"
+            maxLength={2}
+          />
+          <Field
+            label="Setup note (optional)"
+            value={note}
+            onChangeText={setNote}
+            maxLength={160}
+            placeholder="Same tee height, same bat"
+          />
+          <Button title="Save benchmark" onPress={saveBenchmark} />
+          <Text style={S.small}>
+            Only measure when your player is comfortable and ready. These
+            observations are not medical advice or an assessment of talent.
+          </Text>
+        </Card>
+      </View>
+      {state.benchmarks.length > 0 && (
+        <Card>
+          <Text style={S.h2}>Manage benchmark entries</Text>
+          {state.benchmarks
+            .slice(-6)
+            .reverse()
+            .map((b) => (
+              <View key={b.id} style={S.between}>
+                <Text style={[S.body, { flex: 1 }]}>
+                  {METRICS[b.metric]?.label}: {b.value}/10 · {b.date}
+                </Text>
+                <Button
+                  secondary
+                  title={`Remove ${METRICS[b.metric]?.label} ${b.value}/10`}
+                  onPress={() => {
+                    state.removeBenchmark(b.id);
+                    setMessage("Benchmark removed.");
+                  }}
+                />
+              </View>
+            ))}
+        </Card>
+      )}
+      <Card>
+        <Text style={S.h2}>Practice reminders</Text>
+        {Platform.OS === "web" ? (
+          <Text style={S.body}>
+            Daily notifications aren’t available in this web version. Try a
+            recurring reminder in your phone’s calendar for a time that works
+            for your family.
+          </Text>
+        ) : (
+          <>
+            <Text style={S.body}>
+              Optional daily reminder at 6pm in your device’s local time.
+            </Text>
+            <Button
+              title={
+                state.notificationsEnabled
+                  ? "Turn reminders off"
+                  : "Enable reminders"
+              }
+              disabled={busy}
+              onPress={notify}
+            />
+          </>
+        )}
+      </Card>
+      <Card>
+        <Text style={S.h2}>Your family’s data</Text>
+        <Text style={S.body}>
+          Records are stored on this device only. They don’t sync between
+          browsers or phones. Export a copy before clearing site data or
+          changing devices. Exports are for your records; importing is not
+          currently supported.
+        </Text>
+        <View style={S.row}>
+          <Button
+            title="Export practice records"
+            secondary
+            onPress={exportData}
+          />
+          <Button
+            title="Read privacy & data"
+            secondary
+            onPress={() => router.push("/privacy")}
+          />
         </View>
-
-        {/* Notification Toggle */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Reminders</Text>
-          <View style={styles.notifRow}>
-            <View style={styles.notifInfo}>
-              <Text style={styles.notifLabel}>Daily Practice Reminder</Text>
-              <Text style={styles.notifSub}>6pm reminder to log practice</Text>
-            </View>
-            <TouchableOpacity
-              style={[styles.toggle, notificationsEnabled && styles.toggleOn]}
-              onPress={handleToggleNotif}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.toggleText}>{notificationsEnabled ? 'On' : 'Off'}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  )
+        <View style={S.rule} />
+        {confirmReset ? (
+          <>
+            <Text style={S.error}>
+              Delete this player and all practice, benchmark, timer, reward, and
+              points history on this device? This cannot be undone.
+            </Text>
+            <Field
+              label="Type DELETE to confirm"
+              value={deleteText}
+              onChangeText={setDeleteText}
+            />
+            <Button
+              title="Delete all local data"
+              disabled={deleteText !== "DELETE"}
+              onPress={reset}
+            />
+            <Button
+              title="Keep my data"
+              secondary
+              onPress={() => setConfirmReset(false)}
+            />
+          </>
+        ) : (
+          <Button
+            title="Delete local data…"
+            secondary
+            onPress={() => setConfirmReset(true)}
+          />
+        )}
+      </Card>
+      <Text style={S.small}>
+        PracticePal is currently free. No checkout or subscription is active.
+      </Text>
+    </Screen>
+  );
 }
-
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: '#f8fafc',
-  },
-  content: {
-    padding: 20,
-    paddingBottom: 48,
-    gap: 16,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#0f172a',
-    marginBottom: 4,
-  },
-  section: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 16,
-    gap: 12,
-  },
-  sectionTitle: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#94a3b8',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  highlightList: {
-    gap: 6,
-  },
-  highlightItem: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#166534',
-  },
-  insightBox: {
-    backgroundColor: '#eff6ff',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1.5,
-    borderColor: '#bfdbfe',
-  },
-  insightText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1e40af',
-    textAlign: 'center',
-  },
-  sectionSub: {
-    fontSize: 12,
-    color: '#94a3b8',
-    marginTop: -4,
-    fontStyle: 'italic',
-  },
-  emptyText: {
-    fontSize: 14,
-    color: '#22c55e',
-    fontWeight: '600',
-    textAlign: 'center',
-    paddingVertical: 8,
-  },
-  approvalRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 4,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-  },
-  approvalInfo: {
-    gap: 2,
-  },
-  approvalName: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#0f172a',
-  },
-  approvalPoints: {
-    fontSize: 13,
-    color: '#64748b',
-  },
-  approvalButtons: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  approveBtn: {
-    backgroundColor: '#dcfce7',
-    borderRadius: 10,
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: '#86efac',
-  },
-  approveBtnText: {
-    fontSize: 18,
-    color: '#166534',
-    fontWeight: '700',
-  },
-  denyBtn: {
-    backgroundColor: '#fee2e2',
-    borderRadius: 10,
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: '#fca5a5',
-  },
-  denyBtnText: {
-    fontSize: 18,
-    color: '#991b1b',
-    fontWeight: '700',
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: '#f8fafc',
-    borderRadius: 14,
-    padding: 14,
-    alignItems: 'center',
-    gap: 4,
-  },
-  statNumber: {
-    fontSize: 28,
-    fontWeight: '900',
-    color: '#1e40af',
-  },
-  statLabel: {
-    fontSize: 11,
-    color: '#64748b',
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  totalPointsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#fef3c7',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-  },
-  totalPointsLabel: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#92400e',
-  },
-  totalPointsValue: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#92400e',
-  },
-  gearGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  gearCard: {
-    flex: 1,
-    minWidth: 90,
-    backgroundColor: '#f8fafc',
-    borderRadius: 14,
-    padding: 14,
-    alignItems: 'center',
-    gap: 4,
-    borderWidth: 1.5,
-    borderColor: '#e2e8f0',
-  },
-  gearEmoji: {
-    width: 28,
-    height: 28,
-  },
-  gearName: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#0f172a',
-    textAlign: 'center',
-  },
-  gearPrice: {
-    fontSize: 12,
-    color: '#64748b',
-    fontWeight: '500',
-  },
-  shopBtn: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#1e40af',
-    marginTop: 2,
-  },
-  inviteSubtext: {
-    fontSize: 13,
-    color: '#64748b',
-    fontWeight: '500',
-  },
-  codeBox: {
-    backgroundColor: '#eff6ff',
-    borderRadius: 14,
-    padding: 16,
-    alignItems: 'center',
-    gap: 4,
-    borderWidth: 1.5,
-    borderColor: '#bfdbfe',
-  },
-  codeLabel: {
-    fontSize: 13,
-    color: '#64748b',
-    fontWeight: '500',
-  },
-  codeText: {
-    fontSize: 24,
-    fontWeight: '900',
-    color: '#1e40af',
-    letterSpacing: 2,
-  },
-  inviteButtons: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  copyBtn: {
-    flex: 1,
-    backgroundColor: '#1e40af',
-    borderRadius: 12,
-    height: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  copyBtnText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  shareBtn: {
-    flex: 1,
-    backgroundColor: '#f1f5f9',
-    borderRadius: 12,
-    height: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: '#e2e8f0',
-  },
-  shareBtnText: {
-    color: '#1e40af',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  notifRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  notifInfo: {
-    flex: 1,
-    gap: 2,
-  },
-  notifLabel: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#0f172a',
-  },
-  notifSub: {
-    fontSize: 12,
-    color: '#64748b',
-  },
-  toggle: {
-    backgroundColor: '#e2e8f0',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    minWidth: 56,
-    alignItems: 'center',
-  },
-  toggleOn: {
-    backgroundColor: '#1e40af',
-  },
-  toggleText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#fff',
-  },
-})
+export default function Parent() {
+  return (
+    <ParentGate>
+      <Controls />
+    </ParentGate>
+  );
+}

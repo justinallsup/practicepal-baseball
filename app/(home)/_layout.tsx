@@ -1,84 +1,80 @@
-import React from 'react'
-import { Tabs } from 'expo-router'
-import { Text } from 'react-native'
-
-function TabIcon({ emoji }: { emoji: string }) {
-  return <Text style={{ fontSize: 20 }}>{emoji}</Text>
-}
-
-export default function HomeLayout() {
-  // Subscription gating is disabled until verified store billing is available.
+import React, { useEffect, useState } from "react";
+import { Tabs, Redirect } from "expo-router";
+import {
+  House,
+  Target,
+  ChartNoAxesColumn,
+  Gift,
+  ShieldCheck,
+} from "lucide-react-native";
+import { useStore } from "../../lib/store";
+import { C } from "../../components/ui";
+export default function Layout() {
+  const complete = useStore((s) => s.onboardingComplete);
+  const [ready, setReady] = useState(useStore.persist.hasHydrated());
+  useEffect(() => {
+    const unsub = useStore.persist.onFinishHydration(() => setReady(true));
+    if (useStore.persist.hasHydrated()) setReady(true);
+    return unsub;
+  }, []);
+  if (!ready) return null;
+  if (!complete) return <Redirect href="/onboarding" />;
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
+        tabBarActiveTintColor: C.red,
+        tabBarInactiveTintColor: C.muted,
         tabBarStyle: {
-          backgroundColor: '#fff',
-          borderTopColor: '#f1f5f9',
-          borderTopWidth: 1,
-          height: 60,
-          paddingBottom: 8,
+          backgroundColor: C.white,
+          borderTopColor: C.line,
+          height: 70,
+          paddingTop: 8,
+          paddingBottom: 10,
         },
-        tabBarActiveTintColor: '#1e40af',
-        tabBarInactiveTintColor: '#94a3b8',
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: '600',
-        },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: "700" },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="🏠" />,
-        }}
-      />
-      <Tabs.Screen
-        name="kid-mode"
-        options={{
-          title: 'Kid Mode',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="⚾" />,
-        }}
-      />
-      <Tabs.Screen
-        name="store"
-        options={{
-          title: 'Store',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="🛒" />,
+          title: "Today",
+          tabBarIcon: ({ color }) => <House color={color} size={21} />,
         }}
       />
       <Tabs.Screen
         name="training"
         options={{
-          title: 'Training',
-          tabBarIcon: () => <TabIcon emoji="🎯" />,
+          title: "Training",
+          tabBarIcon: ({ color }) => <Target color={color} size={21} />,
         }}
       />
       <Tabs.Screen
-        name="leaderboard"
-        options={{ href: null }}
+        name="weekly"
+        options={{
+          title: "Progress",
+          tabBarIcon: ({ color }) => (
+            <ChartNoAxesColumn color={color} size={21} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="store"
+        options={{
+          title: "Rewards",
+          tabBarIcon: ({ color }) => <Gift color={color} size={21} />,
+        }}
       />
       <Tabs.Screen
         name="parent"
         options={{
-          title: 'Parent',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="👨‍👩‍👧" />,
+          title: "Parent",
+          tabBarIcon: ({ color }) => <ShieldCheck color={color} size={21} />,
         }}
       />
-      {/* Hidden screens - not shown in tab bar */}
-      <Tabs.Screen
-        name="weekly"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="paywall"
-        options={{
-          href: null,
-        }}
-      />
+      {["kid-mode", "leaderboard", "paywall"].map((name) => (
+        <Tabs.Screen key={name} name={name} options={{ href: null }} />
+      ))}
     </Tabs>
-  )
+  );
 }
