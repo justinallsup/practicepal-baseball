@@ -1,0 +1,40 @@
+name: Mobile release preflight
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'app.json'
+      - 'eas.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'app/**'
+      - 'components/**'
+      - '.github/workflows/mobile-preflight.yml'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: TypeScript validation
+        run: npx tsc --noEmit
+      - name: Expo compatibility diagnostics
+        run: npx expo-doctor
+      - name: Verify release metadata
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const config = JSON.parse(fs.readFileSync('app.json','utf8')).expo;
+          if (!config.ios?.bundleIdentifier || !config.android?.package) throw new Error('Missing native app identifiers');
+          if (!fs.existsSync(config.icon)) throw new Error('Missing app icon');
+          if (config.extra?.eas?.projectId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(config.extra.eas.projectId)) {
+            console.warn('EAS project ID is not a UUID. Register/verify EAS project before native builds.');
+          }
+          NODE
