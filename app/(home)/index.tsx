@@ -73,6 +73,7 @@ export default function HomeScreen() {
 
   const [showQuickPracticeModal, setShowQuickPracticeModal] = useState(false)
   // Animation refs
+  const successScale = useRef(new Animated.Value(0.8)).current
   const confettiOpacity = useRef(new Animated.Value(0)).current
   const buttonPulse = useRef(new Animated.Value(1)).current
 
