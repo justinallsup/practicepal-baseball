@@ -330,7 +330,7 @@ export default function Today() {
               { fontSize: 32, lineHeight: 33, color: C.white, marginTop: 8 },
             ]}
           >
-            GEAR UP.\nGET AFTER IT.
+            GEAR UP.{"\n"}GET AFTER IT.
           </Text>
         </PhotoPanel>
         <Card
