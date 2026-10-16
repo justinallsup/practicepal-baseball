@@ -13,7 +13,8 @@ if (Platform.OS !== 'web') {
 if (Notifications) {
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
-      shouldShowAlert: true,
+      shouldShowBanner: true,
+      shouldShowList: true,
       shouldPlaySound: false,
       shouldSetBadge: false,
     }),
@@ -128,7 +129,7 @@ export async function scheduleDay3Notification(): Promise<void> {
     identifier: 'day3-reminder',
     content: {
       title: "Don't lose their progress ⚾",
-      body: "Your free trial ends today — keep the momentum going!",
+      body: "Keep your practice routine going this week!",
       data: { type: 'day3_reminder' },
     },
     trigger: { date: trigger } as any,
