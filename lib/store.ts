@@ -312,8 +312,9 @@ export const useStore = create<AppState>()(
       },
 
       shouldShowPaywall: () => {
-        const { subscriptionStatus, totalLogsCount } = get()
-        return subscriptionStatus === 'free' && totalLogsCount >= 3
+        // Until verified native billing is implemented, do not lock families
+        // out of practice tracking behind a non-functional purchase screen.
+        return false
       },
 
       reset: () => {
