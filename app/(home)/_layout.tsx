@@ -49,11 +49,15 @@ export default function HomeLayout() {
         }}
       />
       <Tabs.Screen
-        name="leaderboard"
+        name="training"
         options={{
-          title: 'Leaderboard',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="🏆" />,
+          title: 'Training',
+          tabBarIcon: () => <TabIcon emoji="🎯" />,
         }}
+      />
+      <Tabs.Screen
+        name="leaderboard"
+        options={{ href: null }}
       />
       <Tabs.Screen
         name="parent"
