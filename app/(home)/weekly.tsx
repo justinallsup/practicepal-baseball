@@ -18,7 +18,7 @@ export default function WeeklyScreen() {
 
   const weekLogs = getWeekLogs()
   const goal = child?.goalPerWeek ?? 3
-  const daysCount = weekLogs.length
+  const daysCount = new Set(weekLogs.map(log => log.date)).size
   const weekDates = getWeekDates()
 
   // Count practice types
@@ -33,16 +33,17 @@ export default function WeeklyScreen() {
     })
   })
 
-  const progress = Math.min(daysCount / goal, 1)
+  const progress = Math.min(daysCount / Math.max(goal, 1), 1)
   const remaining = Math.max(goal - daysCount, 0)
+  const totalSkills = Object.values(typeCounts).reduce((sum, count) => sum + count, 0)
 
   let encouragement = ''
   if (daysCount >= goal) {
-    encouragement = 'Goal reached! Amazing week 🏆'
+    encouragement = 'Weekly goal complete. Strong work!'
   } else if (daysCount >= Math.floor(goal / 2)) {
     encouragement = `Keep it up! ${remaining} more day${remaining !== 1 ? 's' : ''} to hit your goal`
   } else {
-    encouragement = "You can still make it — practice today!"
+    encouragement = 'Every practice counts. Keep building your skills.'
   }
 
   return (
@@ -96,8 +97,8 @@ export default function WeeklyScreen() {
                   style={[
                     styles.typeBarFill,
                     {
-                      width: weekLogs.length > 0
-                        ? `${(typeCounts[type] / Math.max(weekLogs.length, 1)) * 100}%` as any
+                      width: totalSkills > 0
+                        ? `${(typeCounts[type] / totalSkills) * 100}%` as any
                         : '0%',
                     },
                   ]}
@@ -169,7 +170,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   summaryCard: {
-    backgroundColor: '#1e40af',
+    backgroundColor: '#10243a',
     borderRadius: 24,
     padding: 28,
     alignItems: 'center',
@@ -253,7 +254,7 @@ const styles = StyleSheet.create({
   },
   typeBarFill: {
     height: '100%',
-    backgroundColor: '#3b82f6',
+    backgroundColor: '#b91c1c',
     borderRadius: 4,
   },
   typeCount: {
