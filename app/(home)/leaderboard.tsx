@@ -1,187 +1,55 @@
-import React, { useEffect } from 'react'
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native'
+import React from 'react'
+import { View, Text, StyleSheet, ScrollView } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useStore } from '../../lib/store'
 
-const MEDALS = ['🥇', '🥈', '🥉']
-
-export default function LeaderboardScreen() {
-  const leaderboard = useStore(s => s.leaderboard)
-  const refreshLeaderboard = useStore(s => s.refreshLeaderboard)
-  const getWeekLogs = useStore(s => s.getWeekLogs)
-  const hasLoggedToday = useStore(s => s.hasLoggedToday)
-
-  useEffect(() => {
-    refreshLeaderboard()
-  }, [])
-
-  const loggedToday = hasLoggedToday()
-
-  // Find user's position and gap to next
-  const userIndex = leaderboard.findIndex(e => e.isYou)
-  const userEntry = leaderboard[userIndex]
-  let motivationalCopy = ''
-  if (userIndex > 0 && userEntry) {
-    const above = leaderboard[userIndex - 1]
-    const gap = above.practices - userEntry.practices
-    if (gap <= 1) {
-      motivationalCopy = `You're 1 practice away from ${userIndex === 1 ? '1st' : `${userIndex}${userIndex === 2 ? 'nd' : 'rd'}`} place 👀`
-    } else if (gap <= 3) {
-      motivationalCopy = `Only ${gap} practices to move up — you've got this 💪`
-    }
-  } else if (userIndex === 0) {
-    motivationalCopy = 'You\'re in the lead — keep it up! 🏆'
-  }
+export default function PersonalRecordsScreen() {
+  const child = useStore(s => s.child)
+  const logs = useStore(s => s.logs)
+  const bestStreak = useStore(s => s.getBestStreak)()
+  const currentStreak = useStore(s => s.getCurrentStreak)()
+  const weekLogs = useStore(s => s.getWeekLogs)()
+  const days = new Set(logs.map(l => l.date)).size
+  const weeklyDays = new Set(weekLogs.map(l => l.date)).size
+  const goal = child?.goalPerWeek ?? 3
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>Leaderboard 🏆</Text>
-        <Text style={styles.subtitle}>Weekly practices — resets every Sunday</Text>
-
-        <View style={styles.listCard}>
-          {leaderboard.map((entry, index) => {
-            const medal = index < 3 ? MEDALS[index] : `${index + 1}.`
-            return (
-              <View
-                key={`${entry.name}-${index}`}
-                style={[styles.row, entry.isYou && styles.rowHighlight]}
-              >
-                <Text style={styles.medal}>{medal}</Text>
-                <View style={styles.nameSection}>
-                  <Text style={[styles.name, entry.isYou && styles.nameYou]}>
-                    {entry.name}
-                    {entry.isYou && ' (You)'}
-                  </Text>
-                  <Text style={styles.practices}>{entry.practices} practices</Text>
-                </View>
-                {index === 0 && (
-                  <Text style={styles.fire}>🔥</Text>
-                )}
-              </View>
-            )
-          })}
+      <ScrollView contentContainerStyle={styles.content}>
+        <Text style={styles.eyebrow}>PERSONAL PROGRESS</Text>
+        <Text style={styles.title}>{child?.name ?? 'Player'}'s records</Text>
+        <Text style={styles.sub}>Your progress is measured against your own practice history, not other kids.</Text>
+        <View style={styles.hero}>
+          <Text style={styles.heroLabel}>BEST PRACTICE STREAK</Text>
+          <Text style={styles.heroValue}>{bestStreak} days</Text>
+          <Text style={styles.heroNote}>Current streak: {currentStreak} days</Text>
         </View>
-
-        <View style={styles.footer}>
-          {motivationalCopy ? (
-            <Text style={styles.motivationalText}>{motivationalCopy}</Text>
-          ) : null}
-          {loggedToday ? (
-            <Text style={styles.footerText}>Nice work today — keep the streak alive ⭐</Text>
-          ) : (
-            <Text style={styles.footerText}>Log practice today to climb the board ⚾</Text>
-          )}
+        <View style={styles.grid}>
+          <View style={styles.card}><Text style={styles.number}>{days}</Text><Text style={styles.label}>Total practice days</Text></View>
+          <View style={styles.card}><Text style={styles.number}>{weeklyDays}/{goal}</Text><Text style={styles.label}>Weekly goal</Text></View>
         </View>
-
-        <TouchableOpacity
-          style={styles.refreshBtn}
-          onPress={refreshLeaderboard}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.refreshBtnText}>↻ Refresh</Text>
-        </TouchableOpacity>
+        <View style={styles.card}>
+          <Text style={styles.section}>Keep building</Text>
+          <Text style={styles.body}>Consistency and good technique matter more than rankings. Celebrate your own progress and take rest days when needed.</Text>
+        </View>
       </ScrollView>
     </SafeAreaView>
   )
 }
-
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: '#f8fafc',
-  },
-  content: {
-    padding: 20,
-    paddingBottom: 48,
-    gap: 16,
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: '800',
-    color: '#0f172a',
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#64748b',
-    textAlign: 'center',
-    fontWeight: '500',
-  },
-  listCard: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    overflow: 'hidden',
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-    gap: 14,
-  },
-  rowHighlight: {
-    backgroundColor: '#eff6ff',
-  },
-  medal: {
-    fontSize: 22,
-    width: 32,
-    textAlign: 'center',
-  },
-  nameSection: {
-    flex: 1,
-    gap: 2,
-  },
-  name: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#0f172a',
-  },
-  nameYou: {
-    color: '#1e40af',
-  },
-  practices: {
-    fontSize: 13,
-    color: '#64748b',
-    fontWeight: '500',
-  },
-  fire: {
-    fontSize: 20,
-  },
-  footer: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 16,
-    alignItems: 'center',
-  },
-  footerText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#1e40af',
-    textAlign: 'center',
-  },
-  motivationalText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#d97706',
-    textAlign: 'center',
-    marginBottom: 4,
-  },
-  refreshBtn: {
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  refreshBtnText: {
-    fontSize: 14,
-    color: '#94a3b8',
-    fontWeight: '600',
-  },
+  safe: { flex: 1, backgroundColor: '#f5f5f0' },
+  content: { padding: 20, paddingBottom: 48, gap: 16 },
+  eyebrow: { fontSize: 11, fontWeight: '800', letterSpacing: 2, color: '#b91c1c' },
+  title: { fontSize: 30, fontWeight: '900', color: '#10243a' },
+  sub: { fontSize: 14, lineHeight: 21, color: '#526477' },
+  hero: { backgroundColor: '#10243a', borderRadius: 22, padding: 24, gap: 8 },
+  heroLabel: { color: '#f5b9a9', fontWeight: '800', fontSize: 11, letterSpacing: 1.2 },
+  heroValue: { color: '#fff', fontWeight: '900', fontSize: 40 },
+  heroNote: { color: '#cbd5e1', fontSize: 13 },
+  grid: { flexDirection: 'row', gap: 12 },
+  card: { flex: 1, backgroundColor: '#fff', borderRadius: 18, padding: 20, gap: 6 },
+  number: { fontSize: 26, fontWeight: '900', color: '#10243a' },
+  label: { fontSize: 12, color: '#64748b', fontWeight: '600' },
+  section: { fontSize: 18, fontWeight: '800', color: '#10243a' },
+  body: { fontSize: 14, lineHeight: 21, color: '#475569' },
 })
