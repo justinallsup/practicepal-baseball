@@ -237,8 +237,16 @@ export const useStore = create<AppState>()(
         const loggedDates = new Set(logs.map(l => l.date))
         let streak = 0
         const today = new Date()
+        // A streak remains active until the end of the next calendar day.
+        // If today is not logged yet, start counting from yesterday.
+        const todayKey = getToday()
+        const yesterday = new Date(today)
+        yesterday.setDate(today.getDate() - 1)
+        const yesterdayKey = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`
+        if (!loggedDates.has(todayKey) && !loggedDates.has(yesterdayKey)) return 0
+        const startOffset = loggedDates.has(todayKey) ? 0 : 1
 
-        for (let i = 0; i < 365; i++) {
+        for (let i = startOffset; i < 365; i++) {
           const d = new Date(today)
           d.setDate(today.getDate() - i)
           const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
