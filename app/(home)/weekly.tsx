@@ -1,294 +1,223 @@
-import React from 'react'
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { router } from 'expo-router'
-import { useStore } from '../../lib/store'
-import { getWeekDates } from '../../lib/utils'
-import { PracticeType } from '../../lib/store'
-
-export default function WeeklyScreen() {
-  const child = useStore(s => s.child)
-  const getWeekLogs = useStore(s => s.getWeekLogs)
-
-  const weekLogs = getWeekLogs()
-  const goal = child?.goalPerWeek ?? 3
-  const daysCount = weekLogs.length
-  const weekDates = getWeekDates()
-
-  // Count practice types
-  const typeCounts: Record<PracticeType, number> = {
-    Pitching: 0,
-    Hitting: 0,
-    Fielding: 0,
-  }
-  weekLogs.forEach(log => {
-    log.types.forEach(t => {
-      typeCounts[t] = (typeCounts[t] || 0) + 1
-    })
-  })
-
-  const progress = Math.min(daysCount / goal, 1)
-  const remaining = Math.max(goal - daysCount, 0)
-
-  let encouragement = ''
-  if (daysCount >= goal) {
-    encouragement = 'Goal reached! Amazing week 🏆'
-  } else if (daysCount >= Math.floor(goal / 2)) {
-    encouragement = `Keep it up! ${remaining} more day${remaining !== 1 ? 's' : ''} to hit your goal`
-  } else {
-    encouragement = "You can still make it — practice today!"
-  }
-
+import React from "react";
+import { View, Text } from "react-native";
+import { router } from "expo-router";
+import { Award, LockKeyhole } from "lucide-react-native";
+import Svg, { Polyline, Circle } from "react-native-svg";
+import { useStore } from "../../lib/store";
+import { achievements, METRICS, type Metric } from "../../lib/progress";
+import { getWeekDates, getToday } from "../../lib/utils";
+import { Screen, Heading, Card, Button, Stat, C, S } from "../../components/ui";
+export default function Progress() {
+  const state = useStore(),
+    dates = getWeekDates();
+  const days = new Set(state.logs.map((l) => l.date)).size;
+  const badges = achievements(state.logs, state.child?.goalPerWeek ?? 3, dates);
+  const weeks = Array.from({ length: 8 }, (_, i) => {
+    const end = new Date();
+    end.setDate(end.getDate() - (end.getDay() || 7) + 7 - (7 - i) * 7);
+    const start = new Date(end);
+    start.setDate(start.getDate() - 6);
+    const local = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    return {
+      label: `${start.getMonth() + 1}/${start.getDate()}`,
+      count: new Set(
+        state.logs
+          .filter((l) => l.date >= local(start) && l.date <= local(end))
+          .map((l) => l.date),
+      ).size,
+    };
+  });
   return (
-    <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.content}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-            <Text style={styles.backText}>← Back</Text>
-          </TouchableOpacity>
-          <Text style={styles.title}>{child?.name ?? 'Player'}'s Week</Text>
-          <View style={{ width: 60 }} />
+    <Screen>
+      <Heading
+        eyebrow="YOUR OWN PERSONAL BEST"
+        title="Progress worth noticing."
+        detail="Real practice records. Small milestones. No comparisons with other players."
+      />
+      <Card>
+        <View style={S.row}>
+          <Stat value={days} label="Practice days" />
+          <Stat value={state.getCurrentStreak()} label="Current streak" />
+          <Stat value={state.getBestStreak()} label="Best streak" />
+          <Stat
+            value={
+              state.practiceSessions.filter(
+                (s) => s.state === "completed" || s.state === "partial",
+              ).length
+            }
+            label="Timed sessions"
+          />
         </View>
-
-        {/* Summary card */}
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryNumber}>{daysCount}</Text>
-          <Text style={styles.summaryLabel}>of {goal} days practiced this week</Text>
-        </View>
-
-        {/* Encouragement */}
-        <View style={[
-          styles.encourageBanner,
-          daysCount >= goal && styles.encourageBannerSuccess
-        ]}>
-          <Text style={[
-            styles.encourageText,
-            daysCount >= goal && styles.encourageTextSuccess
-          ]}>
-            {encouragement}
-          </Text>
-        </View>
-
-        {/* Progress bar */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Weekly Goal Progress</Text>
-          <View style={styles.progressBar}>
-            <View style={[styles.progressFill, { width: `${progress * 100}%` as any }]} />
-          </View>
-          <Text style={styles.progressLabel}>{daysCount} / {goal} days</Text>
-        </View>
-
-        {/* Practice type breakdown */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Practice Breakdown</Text>
-          {(['Pitching', 'Hitting', 'Fielding'] as PracticeType[]).map(type => (
-            <View key={type} style={styles.typeRow}>
-              <Text style={styles.typeLabel}>{type}</Text>
-              <View style={styles.typeBarBg}>
-                <View
-                  style={[
-                    styles.typeBarFill,
-                    {
-                      width: weekLogs.length > 0
-                        ? `${(typeCounts[type] / Math.max(weekLogs.length, 1)) * 100}%` as any
-                        : '0%',
-                    },
-                  ]}
-                />
-              </View>
-              <Text style={styles.typeCount}>{typeCounts[type]}</Text>
+      </Card>
+      <Card>
+        <Text style={S.h2}>Your last eight weeks</Text>
+        <Text style={S.small}>Practice days per week · Monday–Sunday</Text>
+        <View
+          style={{
+            flexDirection: "row",
+            height: 150,
+            alignItems: "flex-end",
+            gap: 10,
+          }}
+        >
+          {weeks.map((w, i) => (
+            <View
+              key={i}
+              accessibilityLabel={`Week of ${w.label}: ${w.count} practice days`}
+              style={{ flex: 1, alignItems: "center", gap: 7 }}
+            >
+              <Text style={S.small}>{w.count}</Text>
+              <View
+                style={{
+                  width: "100%",
+                  height: Math.max(4, (w.count / 7) * 95),
+                  borderRadius: 5,
+                  backgroundColor: i === 7 ? C.red : C.navy,
+                }}
+              />
+              <Text style={[S.small, { fontSize: 10 }]}>{w.label}</Text>
             </View>
           ))}
         </View>
-
-        {/* Days grid */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Days This Week</Text>
-          {weekDates.map(date => {
-            const dayLog = weekLogs.find(l => l.date === date)
-            return (
-              <View key={date} style={styles.dayRow}>
-                <Text style={styles.dayName}>
-                  {new Date(date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long' })}
+      </Card>
+      <Text style={S.h2}>Milestones earned by showing up</Text>
+      <View style={S.grid}>
+        {badges.map((b) => (
+          <Card
+            key={b.title}
+            style={{
+              flex: 1,
+              minWidth: 240,
+              backgroundColor: b.earned ? C.pale : C.white,
+            }}
+          >
+            {b.earned ? (
+              <Award size={28} color={C.green} />
+            ) : (
+              <LockKeyhole size={25} color={C.muted} />
+            )}
+            <Text style={S.h3}>{b.title}</Text>
+            <Text style={S.body}>{b.detail}</Text>
+            <Text
+              style={[
+                S.small,
+                { fontWeight: "700", color: b.earned ? C.green : C.muted },
+              ]}
+            >
+              {b.earned ? "Earned" : "Keep building"}
+            </Text>
+          </Card>
+        ))}
+      </View>
+      <View style={S.between}>
+        <Text style={S.h2}>Skill benchmarks</Text>
+        <Button
+          title="Record a benchmark"
+          secondary
+          onPress={() => router.push("/(home)/parent")}
+        />
+      </View>
+      <Text style={S.body}>
+        Parent-entered observations, not a rating of ability. Keep the setup
+        consistent to make changes meaningful.
+      </Text>
+      <View style={S.grid}>
+        {(Object.keys(METRICS) as Metric[]).map((metric) => {
+          const entries = state.benchmarks.filter((b) => b.metric === metric),
+            recent = entries.slice(-8),
+            last = entries.at(-1),
+            first = entries[0];
+          return (
+            <Card key={metric} style={{ flex: 1, minWidth: 260 }}>
+              <Text style={S.h3}>{METRICS[metric].label}</Text>
+              {last ? (
+                <>
+                  <Text style={[S.title, { fontSize: 38 }]}>
+                    {last.value}
+                    <Text style={S.body}> / 10</Text>
+                  </Text>
+                  <Text style={S.small}>
+                    {entries.length > 1
+                      ? `${last.value - first.value >= 0 ? "+" : ""}${last.value - first.value} from first recorded result`
+                      : "Your starting point"}{" "}
+                    · {last.date}
+                  </Text>
+                  <Svg
+                    viewBox="0 0 280 90"
+                    width="100%"
+                    height={90}
+                    accessibilityLabel={recent
+                      .map((b) => `${b.date}: ${b.value} of 10`)
+                      .join(", ")}
+                  >
+                    <Polyline
+                      fill="none"
+                      stroke={C.green}
+                      strokeWidth="3"
+                      points={recent
+                        .map(
+                          (b, i) =>
+                            `${15 + (i * 250) / Math.max(1, recent.length - 1)},${75 - b.value * 6}`,
+                        )
+                        .join(" ")}
+                    />
+                    {recent.map((b, i) => (
+                      <Circle
+                        key={b.id}
+                        cx={15 + (i * 250) / Math.max(1, recent.length - 1)}
+                        cy={75 - b.value * 6}
+                        r={4}
+                        fill={C.green}
+                      />
+                    ))}
+                  </Svg>
+                  <Text style={S.small}>
+                    Recent results: {recent.map((b) => b.value).join(" → ")}
+                  </Text>
+                  {last.note ? <Text style={S.body}>{last.note}</Text> : null}
+                </>
+              ) : (
+                <Text style={S.body}>
+                  No benchmark yet. Start with one observation together, then
+                  revisit the same drill over time.
                 </Text>
-                {dayLog ? (
-                  <View style={styles.dayDone}>
-                    <Text style={styles.dayDoneText}>
-                      ✓ {dayLog.types.length > 0 ? dayLog.types.join(', ') : 'Practice'}
-                    </Text>
-                  </View>
-                ) : (
-                  <Text style={styles.dayMissed}>—</Text>
-                )}
+              )}
+            </Card>
+          );
+        })}
+      </View>
+      <Card>
+        <Text style={S.h2}>Recent practice</Text>
+        {state.logs.length ? (
+          state.logs
+            .slice(-10)
+            .reverse()
+            .map((l) => (
+              <View key={l.id} style={S.between}>
+                <View style={{ gap: 4 }}>
+                  <Text style={S.h3}>
+                    {l.date === getToday() ? "Today" : l.date}
+                  </Text>
+                  <Text style={S.small}>
+                    {l.types.length
+                      ? l.types
+                          .map((t) => (t === "Pitching" ? "Throwing" : t))
+                          .join(" · ")
+                      : "General practice"}
+                  </Text>
+                </View>
+                <Text style={S.small}>
+                  {l.feeling ? `Felt ${l.feeling}` : "Recorded"}
+                </Text>
               </View>
-            )
-          })}
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  )
+            ))
+        ) : (
+          <Text style={S.body}>
+            Your story starts with the first practice. Log one from Today.
+          </Text>
+        )}
+      </Card>
+    </Screen>
+  );
 }
-
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: '#f8fafc',
-  },
-  content: {
-    padding: 20,
-    paddingBottom: 48,
-    gap: 16,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  backBtn: {
-    paddingVertical: 8,
-    paddingRight: 8,
-    width: 60,
-  },
-  backText: {
-    fontSize: 15,
-    color: '#1e40af',
-    fontWeight: '600',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#0f172a',
-    textAlign: 'center',
-  },
-  summaryCard: {
-    backgroundColor: '#1e40af',
-    borderRadius: 24,
-    padding: 28,
-    alignItems: 'center',
-  },
-  summaryNumber: {
-    fontSize: 64,
-    fontWeight: '900',
-    color: '#fff',
-  },
-  summaryLabel: {
-    fontSize: 16,
-    color: 'rgba(255,255,255,0.8)',
-    fontWeight: '500',
-    textAlign: 'center',
-  },
-  encourageBanner: {
-    backgroundColor: '#fef3c7',
-    borderRadius: 14,
-    padding: 16,
-  },
-  encourageBannerSuccess: {
-    backgroundColor: '#dcfce7',
-  },
-  encourageText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#92400e',
-    textAlign: 'center',
-  },
-  encourageTextSuccess: {
-    color: '#166534',
-  },
-  section: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 20,
-    gap: 12,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#94a3b8',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 4,
-  },
-  progressBar: {
-    height: 12,
-    backgroundColor: '#e2e8f0',
-    borderRadius: 6,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#22c55e',
-    borderRadius: 6,
-  },
-  progressLabel: {
-    fontSize: 14,
-    color: '#64748b',
-    fontWeight: '600',
-    textAlign: 'right',
-  },
-  typeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  typeLabel: {
-    width: 70,
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#0f172a',
-  },
-  typeBarBg: {
-    flex: 1,
-    height: 8,
-    backgroundColor: '#f1f5f9',
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  typeBarFill: {
-    height: '100%',
-    backgroundColor: '#3b82f6',
-    borderRadius: 4,
-  },
-  typeCount: {
-    width: 24,
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#1e40af',
-    textAlign: 'right',
-  },
-  dayRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 6,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-  },
-  dayName: {
-    fontSize: 14,
-    color: '#0f172a',
-    fontWeight: '500',
-  },
-  dayDone: {
-    backgroundColor: '#dcfce7',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  dayDoneText: {
-    fontSize: 13,
-    color: '#166534',
-    fontWeight: '600',
-  },
-  dayMissed: {
-    fontSize: 14,
-    color: '#cbd5e1',
-  },
-})

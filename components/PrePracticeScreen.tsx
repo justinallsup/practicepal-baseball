@@ -8,8 +8,8 @@ import {
   SafeAreaView,
 } from 'react-native'
 import { router } from 'expo-router'
-import { PRACTICE_CHALLENGES, DRILL_CHIPS, PracticeDuration } from '../../lib/practice-types'
-import { AppIcon } from '../AppIcon'
+import { PRACTICE_CHALLENGES, DRILL_CHIPS, PracticeDuration } from '../lib/practice-types'
+import { AppIcon } from './AppIcon'
 import { Play } from 'lucide-react-native'
 
 interface PrePracticeScreenProps {

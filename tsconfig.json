@@ -5,5 +5,12 @@
     "paths": {
       "@/*": ["./*"]
     }
-  }
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "web-build",
+    "test-results",
+    "playwright-report"
+  ]
 }

@@ -3,6 +3,9 @@
  * Adds practice flow state management to the main store
  */
 
+import { getToday } from "./utils";
+import { TRAINING_DRILLS } from "./training-plan";
+import type { PracticeType } from "./store";
 import {
   PracticeSession,
   PracticeSettings,
@@ -12,47 +15,53 @@ import {
   getRandomEncouragement,
   calculateProgress,
   getNextMilestone,
-} from './practice-types'
+} from "./practice-types";
 
 export interface PracticeStoreState {
   // Practice state
-  practiceSessions: PracticeSession[]
-  practiceSettings: Record<string, PracticeSettings> // keyed by childId
-  practiceStats: Record<string, PracticeStats> // keyed by childId
-  activePracticeSessionId: string | null
+  practiceSessions: PracticeSession[];
+  practiceSettings: Record<string, PracticeSettings>; // keyed by childId
+  practiceStats: Record<string, PracticeStats>; // keyed by childId
+  activePracticeSessionId: string | null;
 
   // Practice actions
   startPracticeSession: (
     childId: string,
     durationMinutes: PracticeDuration,
     challengeId?: string,
-    drillIds?: string[]
-  ) => PracticeSession
+    drillIds?: string[],
+  ) => PracticeSession;
 
-  updatePracticeSession: (sessionId: string, updates: Partial<PracticeSession>) => void
+  updatePracticeSession: (
+    sessionId: string,
+    updates: Partial<PracticeSession>,
+  ) => void;
 
   finishPracticeSession: (
     sessionId: string,
-    earlyFinish?: boolean
-  ) => { stats: PracticeStats; pointsEarned: number } | null
+    earlyFinish?: boolean,
+  ) => { stats: PracticeStats; pointsEarned: number } | null;
 
-  cancelPracticeSession: (sessionId: string) => void
+  cancelPracticeSession: (sessionId: string) => void;
 
-  updatePracticeElapsed: (sessionId: string, elapsedSeconds: number) => void
+  updatePracticeElapsed: (sessionId: string, elapsedSeconds: number) => void;
 
   checkMilestoneEncouragement: (sessionId: string) => {
-    shouldShow: boolean
-    message: string
-    milestone: number
-  } | null
+    shouldShow: boolean;
+    message: string;
+    milestone: number;
+  } | null;
 
   // Selectors
-  getActivePracticeSession: (childId: string) => PracticeSession | undefined
-  getTodaysPracticeSession: (childId: string) => PracticeSession | undefined
-  getPracticeSettings: (childId: string) => PracticeSettings
-  updatePracticeSettings: (childId: string, settings: Partial<PracticeSettings>) => void
-  getPracticeStats: (childId: string) => PracticeStats
-  hasPracticedToday: (childId: string) => boolean
+  getActivePracticeSession: (childId: string) => PracticeSession | undefined;
+  getTodaysPracticeSession: (childId: string) => PracticeSession | undefined;
+  getPracticeSettings: (childId: string) => PracticeSettings;
+  updatePracticeSettings: (
+    childId: string,
+    settings: Partial<PracticeSettings>,
+  ) => void;
+  getPracticeStats: (childId: string) => PracticeStats;
+  hasPracticedToday: (childId: string) => boolean;
 }
 
 export const practiceStoreSlice = (set: any, get: any): PracticeStoreState => ({
@@ -62,10 +71,12 @@ export const practiceStoreSlice = (set: any, get: any): PracticeStoreState => ({
   activePracticeSessionId: null,
 
   startPracticeSession: (childId, durationMinutes, challengeId, drillIds) => {
+    const existing = get().getActivePracticeSession(childId);
+    if (existing) return existing;
     const session: PracticeSession = {
       id: Date.now().toString() + Math.random(),
       childId,
-      state: 'in_progress',
+      state: "in_progress",
       startedAt: new Date().toISOString(),
       durationMinutes,
       elapsedSeconds: 0,
@@ -73,67 +84,75 @@ export const practiceStoreSlice = (set: any, get: any): PracticeStoreState => ({
       selectedDrills: drillIds || [],
       encouragementShown: [],
       completedChallenge: false,
-    }
+    };
     set((state: any) => ({
       practiceSessions: [...state.practiceSessions, session],
       activePracticeSessionId: session.id,
-    }))
-    return session
+    }));
+    return session;
   },
 
   updatePracticeSession: (sessionId, updates) => {
     set((state: any) => ({
       practiceSessions: state.practiceSessions.map((s: PracticeSession) =>
-        s.id === sessionId ? { ...s, ...updates } : s
+        s.id === sessionId ? { ...s, ...updates } : s,
       ),
-    }))
+    }));
   },
 
   finishPracticeSession: (sessionId, earlyFinish = false) => {
-    const state = get()
-    const session = state.practiceSessions.find((s: PracticeSession) => s.id === sessionId)
-    if (!session) return null
+    const state = get();
+    const session = state.practiceSessions.find(
+      (s: PracticeSession) => s.id === sessionId,
+    );
+    if (
+      !session ||
+      session.state !== "in_progress" ||
+      (session.elapsedSeconds ?? 0) < 60
+    )
+      return null;
 
-    const settings = get().getPracticeSettings(session.childId)
-    const shouldCount = !earlyFinish || settings.earlyFinishBehavior !== 'do_not_count'
+    const settings = get().getPracticeSettings(session.childId);
+    const shouldCount =
+      !earlyFinish || settings.earlyFinishBehavior !== "do_not_count";
 
     if (!shouldCount) {
       get().updatePracticeSession(sessionId, {
-        state: 'early_finish',
+        state: "early_finish",
         completedAt: new Date().toISOString(),
-      })
-      set({ activePracticeSessionId: null })
-      return null
+      });
+      set({ activePracticeSessionId: null });
+      return null;
     }
 
     const completionState =
-      earlyFinish && settings.earlyFinishBehavior === 'count_partial' ? 'partial' : 'completed'
+      earlyFinish && settings.earlyFinishBehavior === "count_partial"
+        ? "partial"
+        : "completed";
 
     get().updatePracticeSession(sessionId, {
       state: completionState,
       completedAt: new Date().toISOString(),
       completedChallenge: session.selectedChallenge ? true : false,
-    })
+    });
 
     // Update stats
-    const stats = get().getPracticeStats(session.childId)
-    const durationMinutes = session.elapsedSeconds
-      ? Math.round(session.elapsedSeconds / 60)
-      : session.durationMinutes
+    const stats = get().getPracticeStats(session.childId);
+    const durationMinutes = Math.round((session.elapsedSeconds ?? 0) / 60);
 
-    const today = new Date().toDateString()
+    const today = new Date().toDateString();
     const lastPracticeDate = stats.lastPracticeDate
       ? new Date(stats.lastPracticeDate).toDateString()
-      : null
-    const yesterday = new Date(Date.now() - 86400000).toDateString()
+      : null;
+    const yesterday = new Date(Date.now() - 86400000).toDateString();
 
-    let newStreak = stats.currentStreak
+    let newStreak = stats.currentStreak;
     if (!lastPracticeDate || lastPracticeDate === today) {
-      newStreak = stats.currentStreak || 1
+      newStreak = stats.currentStreak || 1;
     } else if (lastPracticeDate === yesterday) {
-      newStreak = stats.currentStreak + 1
+      newStreak = stats.currentStreak + 1;
     } else {
-      newStreak = 1
+      newStreak = 1;
     }
 
     const updatedStats: PracticeStats = {
@@ -142,9 +161,9 @@ export const practiceStoreSlice = (set: any, get: any): PracticeStoreState => ({
       totalMinutes: stats.totalMinutes + durationMinutes,
       currentStreak: newStreak,
       longestStreak: Math.max(stats.longestStreak, newStreak),
-      challengesCompleted: stats.challengesCompleted + (session.completedChallenge ? 1 : 0),
+      challengesCompleted: stats.challengesCompleted,
       lastPracticeDate: new Date().toISOString(),
-    }
+    };
 
     set((state: any) => ({
       practiceStats: {
@@ -152,80 +171,121 @@ export const practiceStoreSlice = (set: any, get: any): PracticeStoreState => ({
         [session.childId]: updatedStats,
       },
       activePracticeSessionId: null,
-    }))
+    }));
 
-    // Calculate points earned (base 10 + bonus for challenge)
-    const pointsEarned = 10 + (session.completedChallenge ? 5 : 0)
+    const skillMap: Record<string, PracticeType> = {
+      throwing: "Pitching",
+      "ground-balls": "Fielding",
+      "batting-tee": "Hitting",
+      catching: "Fielding",
+    };
+    const types = [
+      ...new Set(
+        (session.selectedDrills ?? [])
+          .map(
+            (id: string) =>
+              TRAINING_DRILLS.find((d) => d.id === id)?.skill ??
+              skillMap[id] ??
+              id,
+          )
+          .filter((s: string) =>
+            ["Hitting", "Fielding", "Pitching"].includes(s),
+          ),
+      ),
+    ] as PracticeType[];
+    const result = get().logPractice(types);
+    const pointsEarned = result.alreadyLoggedToday ? 0 : 10;
+    get().updatePracticeSession(sessionId, { pointsEarned });
 
-    // Log practice in the main system
-    get().logPractice(session.selectedDrills || [])
-
-    return { stats: updatedStats, pointsEarned }
+    return { stats: updatedStats, pointsEarned };
   },
 
   cancelPracticeSession: (sessionId) => {
     set((state: any) => ({
-      practiceSessions: state.practiceSessions.filter((s: PracticeSession) => s.id !== sessionId),
+      practiceSessions: state.practiceSessions.filter(
+        (s: PracticeSession) => s.id !== sessionId,
+      ),
       activePracticeSessionId: null,
-    }))
+    }));
   },
 
   updatePracticeElapsed: (sessionId, elapsedSeconds) => {
-    get().updatePracticeSession(sessionId, { elapsedSeconds })
+    const session = get().practiceSessions.find(
+      (s: PracticeSession) => s.id === sessionId,
+    );
+    if (
+      !session ||
+      session.state !== "in_progress" ||
+      !Number.isFinite(elapsedSeconds) ||
+      session.elapsedSeconds === elapsedSeconds
+    )
+      return;
+    get().updatePracticeSession(sessionId, {
+      elapsedSeconds: Math.max(
+        0,
+        Math.min(elapsedSeconds, session.durationMinutes * 60),
+      ),
+    });
   },
 
   checkMilestoneEncouragement: (sessionId) => {
-    const state = get()
-    const session = state.practiceSessions.find((s: PracticeSession) => s.id === sessionId)
-    if (!session || !session.elapsedSeconds) return null
+    const state = get();
+    const session = state.practiceSessions.find(
+      (s: PracticeSession) => s.id === sessionId,
+    );
+    if (!session || !session.elapsedSeconds) return null;
 
-    const settings = get().getPracticeSettings(session.childId)
-    if (!settings.encouragementEnabled) return null
+    const settings = get().getPracticeSettings(session.childId);
+    if (!settings.encouragementEnabled) return null;
 
-    const progress = calculateProgress(session.elapsedSeconds, session.durationMinutes)
-    const milestone = getNextMilestone(progress, session.encouragementShown)
+    const progress = calculateProgress(
+      session.elapsedSeconds,
+      session.durationMinutes,
+    );
+    const milestone = getNextMilestone(progress, session.encouragementShown);
 
     if (milestone !== null) {
-      const message = getRandomEncouragement(milestone)
+      const message = getRandomEncouragement(milestone);
       get().updatePracticeSession(sessionId, {
         encouragementShown: [...session.encouragementShown, milestone],
-      })
-      return { shouldShow: true, message, milestone }
+      });
+      return { shouldShow: true, message, milestone };
     }
 
-    return null
+    return null;
   },
 
   getActivePracticeSession: (childId) => {
-    const state = get()
+    const state = get();
     return state.practiceSessions.find(
-      (s: PracticeSession) => s.childId === childId && s.state === 'in_progress'
-    )
+      (s: PracticeSession) =>
+        s.childId === childId && s.state === "in_progress",
+    );
   },
 
   getTodaysPracticeSession: (childId) => {
-    const state = get()
-    const today = new Date().toDateString()
+    const state = get();
+    const today = new Date().toDateString();
     return state.practiceSessions.find(
       (s: PracticeSession) =>
         s.childId === childId &&
         s.completedAt &&
         new Date(s.completedAt).toDateString() === today &&
-        (s.state === 'completed' || s.state === 'partial')
-    )
+        (s.state === "completed" || s.state === "partial"),
+    );
   },
 
   getPracticeSettings: (childId) => {
-    const state = get()
+    const state = get();
     return (
       state.practiceSettings[childId] || {
         childId,
         defaultDuration: 15,
-        earlyFinishBehavior: 'count_full',
+        earlyFinishBehavior: "count_full",
         soundEnabled: true,
         encouragementEnabled: true,
       }
-    )
+    );
   },
 
   updatePracticeSettings: (childId, settings) => {
@@ -237,11 +297,11 @@ export const practiceStoreSlice = (set: any, get: any): PracticeStoreState => ({
           ...settings,
         },
       },
-    }))
+    }));
   },
 
   getPracticeStats: (childId) => {
-    const state = get()
+    const state = get();
     return (
       state.practiceStats[childId] || {
         childId,
@@ -251,10 +311,10 @@ export const practiceStoreSlice = (set: any, get: any): PracticeStoreState => ({
         longestStreak: 0,
         challengesCompleted: 0,
       }
-    )
+    );
   },
 
   hasPracticedToday: (childId) => {
-    return get().getTodaysPracticeSession(childId) !== undefined
+    return get().getTodaysPracticeSession(childId) !== undefined;
   },
-})
+});
