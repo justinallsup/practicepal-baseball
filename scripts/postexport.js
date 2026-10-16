@@ -44,12 +44,14 @@ html = html.replace(
 html = html.replace(
   "</head>",
   `<meta name="description" content="Build a baseball practice routine together. Guided drills, practice timers, personal progress, and parent-approved rewards. Free to use." />
-<meta name="theme-color" content="#122B39" />
+<meta name="theme-color" content="#102F29" />
 <meta property="og:title" content="PracticePal Baseball — Small sessions. Big habits." />
 <meta property="og:description" content="A clear practice plan, real progress, and family rewards. Start free with no account or card." />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://baseballpracticepal.com" />
-<style>body{background:#F6F4EF}*:focus-visible{outline:3px solid #B84332;outline-offset:3px}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation-duration:0.01ms!important;transition-duration:0.01ms!important}}</style>
+<link rel="preload" href="/fonts/BarlowCondensed-Bold.ttf" as="font" type="font/ttf" crossorigin />
+<link rel="preload" href="/fonts/Manrope.ttf" as="font" type="font/ttf" crossorigin />
+<style>@font-face{font-family:BarlowCondensed;src:url('/fonts/BarlowCondensed-Bold.ttf') format('truetype');font-weight:700 900;font-display:swap}@font-face{font-family:Manrope;src:url('/fonts/Manrope.ttf') format('truetype');font-weight:200 800;font-display:swap}body{background:#F4F3ED}*:focus-visible{outline:3px solid #B88D32;outline-offset:3px}@media(max-width:600px){[data-testid="batting-photo"]>div{background-position:78% center!important}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation-duration:0.01ms!important;transition-duration:0.01ms!important}}</style>
 </head>`,
 );
 fs.writeFileSync(indexPath, html);

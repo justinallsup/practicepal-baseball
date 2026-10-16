@@ -6,7 +6,7 @@ import { useStore, type PracticeType } from "../lib/store";
 import type { PracticeDuration } from "../lib/practice-types";
 import { elapsedForSession } from "../lib/session-clock";
 import { TRAINING_DRILLS } from "../lib/training-plan";
-import { C, S, Card, Button, Chip, Heading } from "./ui";
+import { C, S, D, Card, Button, Chip, Heading } from "./ui";
 
 export default function PracticeFlow({
   visible,
@@ -68,19 +68,17 @@ export default function PracticeFlow({
   function pause() {
     if (!active) return;
     const now = Date.now();
-    useStore
-      .getState()
-      .updatePracticeSession(
-        active.id,
-        active.pausedAt
-          ? {
-              pausedAt: undefined,
-              pausedSeconds:
-                (active.pausedSeconds ?? 0) +
-                (now - Date.parse(active.pausedAt)) / 1000,
-            }
-          : { pausedAt: new Date(now).toISOString() },
-      );
+    useStore.getState().updatePracticeSession(
+      active.id,
+      active.pausedAt
+        ? {
+            pausedAt: undefined,
+            pausedSeconds:
+              (active.pausedSeconds ?? 0) +
+              (now - Date.parse(active.pausedAt)) / 1000,
+          }
+        : { pausedAt: new Date(now).toISOString() },
+    );
   }
   function finish() {
     if (!active) return;
@@ -159,11 +157,13 @@ export default function PracticeFlow({
                 }
               />
               <View style={[S.hero, { alignItems: "center" }]}>
-                <Timer color="#E9AF92" size={30} />
+                <Timer color={C.lime} size={30} />
                 <Text
                   accessibilityLabel="Time remaining"
                   style={{
-                    fontSize: 72,
+                    fontFamily: D,
+                    fontSize: 96,
+                    lineHeight: 108,
                     color: C.white,
                     fontWeight: "800",
                     fontVariant: ["tabular-nums"],

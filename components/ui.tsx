@@ -6,30 +6,37 @@ import {
   Pressable,
   StyleSheet,
   TextInput,
+  Platform,
+  useWindowDimensions,
   type TextInputProps,
   type ViewStyle,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { CircleDot, ArrowUpRight } from "lucide-react-native";
+import { ArrowUpRight, Check, Star } from "lucide-react-native";
+import Svg, { Path, Circle } from "react-native-svg";
 
 export const C = {
-  navy: "#122B39",
-  red: "#B84332",
-  cream: "#F6F4EF",
+  navy: "#102F29",
+  red: "#21644C",
+  cream: "#F4F3ED",
   white: "#FFFFFF",
-  muted: "#536775",
-  line: "#DFE4E3",
-  green: "#236752",
-  pale: "#EAF1EC",
-  gold: "#A36D20",
+  muted: "#63716B",
+  line: "#E1E6DE",
+  green: "#21644C",
+  pale: "#E8EFE5",
+  gold: "#956B25",
+  lime: "#E8C77A",
+  dark: "#0B211D",
 };
+export const F = Platform.OS === "web" ? "Manrope" : undefined;
+export const D = Platform.OS === "web" ? "BarlowCondensed" : undefined;
 export const S = StyleSheet.create({
   page: { flex: 1, backgroundColor: C.cream },
   content: {
     width: "100%",
-    maxWidth: 1080,
+    maxWidth: 1240,
     alignSelf: "center",
-    padding: 24,
+    padding: 28,
     paddingBottom: 48,
     gap: 24,
   },
@@ -46,7 +53,7 @@ export const S = StyleSheet.create({
     gap: 16,
     flexWrap: "wrap",
   },
-  grid: { flexDirection: "row", flexWrap: "wrap", gap: 16 },
+  grid: { flexDirection: "row", flexWrap: "wrap", gap: 18 },
   card: {
     backgroundColor: C.white,
     borderWidth: 1,
@@ -54,36 +61,70 @@ export const S = StyleSheet.create({
     borderRadius: 22,
     padding: 24,
     gap: 14,
+    shadowColor: "#143B25",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.025,
+    shadowRadius: 14,
   },
-  hero: { backgroundColor: C.navy, borderRadius: 24, padding: 28, gap: 18 },
+  hero: {
+    backgroundColor: C.navy,
+    borderRadius: 24,
+    padding: 28,
+    gap: 18,
+    overflow: "hidden",
+  },
   eyebrow: {
-    fontSize: 11,
+    fontFamily: F,
+    fontSize: 10,
     fontWeight: "800",
     letterSpacing: 2,
     color: C.red,
     textTransform: "uppercase",
   },
   title: {
-    fontSize: 34,
-    lineHeight: 40,
-    fontWeight: "800",
-    letterSpacing: -1,
+    fontFamily: D,
+    fontSize: 44,
+    lineHeight: 46,
+    fontWeight: "700",
+    letterSpacing: -0.5,
     color: C.navy,
   },
-  h2: { fontSize: 22, fontWeight: "700", letterSpacing: -0.5, color: C.navy },
-  h3: { fontSize: 17, fontWeight: "700", color: C.navy },
-  body: { fontSize: 15, lineHeight: 23, color: C.muted },
-  small: { fontSize: 12, lineHeight: 19, color: C.muted },
-  white: { color: C.white },
-  light: { color: "#C5D3D9" },
-  input: {
-    borderWidth: 1,
-    borderColor: "#B8C6CA",
-    borderRadius: 12,
-    backgroundColor: C.white,
-    padding: 14,
+  display: {
+    fontFamily: D,
+    fontSize: 68,
+    lineHeight: 65,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: -0.5,
+    color: C.navy,
+  },
+  h2: {
+    fontFamily: F,
+    fontSize: 22,
+    fontWeight: "800",
+    letterSpacing: -0.7,
+    color: C.navy,
+  },
+  h3: {
+    fontFamily: F,
     fontSize: 16,
-    minHeight: 50,
+    fontWeight: "800",
+    letterSpacing: -0.3,
+    color: C.navy,
+  },
+  body: { fontFamily: F, fontSize: 14, lineHeight: 23, color: C.muted },
+  small: { fontFamily: F, fontSize: 11, lineHeight: 18, color: C.muted },
+  white: { color: C.white },
+  light: { color: "#CFDCD1" },
+  input: {
+    fontFamily: F,
+    borderWidth: 1,
+    borderColor: "#CDD7CD",
+    borderRadius: 12,
+    backgroundColor: "#FBFCF8",
+    padding: 15,
+    fontSize: 15,
+    minHeight: 52,
     color: C.navy,
   },
   pill: {
@@ -91,40 +132,84 @@ export const S = StyleSheet.create({
     borderColor: C.line,
     backgroundColor: C.white,
     paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingHorizontal: 18,
     minHeight: 44,
-    borderRadius: 12,
+    borderRadius: 30,
   },
   chosen: { backgroundColor: C.navy, borderColor: C.navy },
-  error: { color: "#A42E25", fontSize: 14, lineHeight: 21 },
+  error: { fontFamily: F, color: "#A42E25", fontSize: 14, lineHeight: 21 },
   rule: { height: 1, backgroundColor: C.line },
 });
 export function Screen({ children }: React.PropsWithChildren) {
+  const small = useWindowDimensions().width < 600;
   return (
     <SafeAreaView style={S.page} edges={["top", "left", "right"]}>
       <ScrollView
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={S.content}
+        contentContainerStyle={[
+          S.content,
+          small && { padding: 18, paddingBottom: 32, gap: 22 },
+        ]}
       >
         {children}
       </ScrollView>
     </SafeAreaView>
   );
 }
-export function Brand() {
+export function Brand({ light = false }: { light?: boolean }) {
   return (
-    <View style={S.row}>
-      <CircleDot size={27} color={C.red} />
-      <Text
+    <View style={[S.row, { gap: 10 }]}>
+      <View
         style={{
-          color: C.navy,
-          fontSize: 20,
-          fontWeight: "800",
-          letterSpacing: -0.6,
+          width: 39,
+          height: 44,
+          backgroundColor: light ? C.lime : C.navy,
+          borderRadius: 12,
+          alignItems: "center",
+          justifyContent: "center",
+          transform: [{ rotate: "-5deg" }],
         }}
       >
-        PracticePal<Text style={{ fontWeight: "400" }}> Baseball</Text>
-      </Text>
+        <Svg width={27} height={27} viewBox="0 0 32 32">
+          <Path
+            d="M16 3 L29 10 V23 L16 30 3 23 V10Z"
+            stroke={light ? C.navy : C.lime}
+            strokeWidth="1.5"
+            fill="none"
+          />
+          <Path
+            d="M11 22V10h7a4 4 0 010 8h-7"
+            fill="none"
+            stroke={light ? C.navy : C.white}
+            strokeWidth="3"
+          />
+        </Svg>
+      </View>
+      <View>
+        <Text
+          style={{
+            fontFamily: F,
+            color: light ? C.white : C.navy,
+            fontSize: 20,
+            fontWeight: "800",
+            letterSpacing: -1,
+          }}
+        >
+          PracticePal
+        </Text>
+        <Text
+          style={[
+            S.eyebrow,
+            {
+              fontSize: 8,
+              letterSpacing: 3,
+              color: light ? "#C5D6C8" : C.muted,
+            },
+          ]}
+        >
+          BASEBALL CLUB
+        </Text>
+      </View>
     </View>
   );
 }
@@ -139,11 +224,14 @@ export function Heading({
 }) {
   return (
     <View style={{ gap: 8 }}>
-      <Text style={S.eyebrow}>{eyebrow}</Text>
+      <View style={[S.row, { gap: 8 }]}>
+        <View style={{ width: 20, height: 2, backgroundColor: C.gold }} />
+        <Text style={S.eyebrow}>{eyebrow}</Text>
+      </View>
       <Text role="heading" aria-level={1} style={S.title}>
         {title}
       </Text>
-      {detail && <Text style={S.body}>{detail}</Text>}
+      {detail && <Text style={[S.body, { maxWidth: 660 }]}>{detail}</Text>}
     </View>
   );
 }
@@ -159,12 +247,14 @@ export function Button({
   secondary,
   disabled,
   testID,
+  gold = false,
 }: {
   title: string;
   onPress: () => void;
   secondary?: boolean;
   disabled?: boolean;
   testID?: string;
+  gold?: boolean;
 }) {
   return (
     <Pressable
@@ -176,27 +266,35 @@ export function Button({
       onPress={onPress}
       style={({ pressed }) => ({
         minHeight: 50,
-        paddingHorizontal: 20,
+        paddingHorizontal: 18,
         paddingVertical: 14,
         borderRadius: 12,
-        backgroundColor: secondary ? C.white : C.red,
+        backgroundColor: gold ? C.lime : secondary ? C.white : C.green,
         borderWidth: 1,
-        borderColor: secondary ? C.line : C.red,
+        borderColor: gold ? C.lime : secondary ? C.line : C.green,
         opacity: disabled ? 0.45 : pressed ? 0.8 : 1,
+        flexDirection: "row",
+        gap: 12,
         alignItems: "center",
         justifyContent: "center",
+        transform: [{ translateY: pressed ? 1 : 0 }],
       })}
     >
       <Text
         style={{
-          color: secondary ? C.navy : C.white,
-          fontSize: 15,
-          fontWeight: "700",
+          fontFamily: F,
+          color: gold || secondary ? C.navy : C.white,
+          fontSize: 12,
+          fontWeight: "800",
           textAlign: "center",
+          flexShrink: 1,
         }}
       >
         {title}
       </Text>
+      {!disabled && (
+        <ArrowUpRight size={16} color={gold || secondary ? C.navy : C.white} />
+      )}
     </Pressable>
   );
 }
@@ -217,7 +315,7 @@ export function Chip({
       onPress={onPress}
       style={[S.pill, selected && S.chosen]}
     >
-      <Text style={[S.small, { fontWeight: "700" }, selected && S.white]}>
+      <Text style={[S.small, { fontWeight: "800" }, selected && S.white]}>
         {title}
       </Text>
     </Pressable>
@@ -244,13 +342,14 @@ export function Stat({
   label: string;
 }) {
   return (
-    <View style={{ flex: 1, minWidth: 86, gap: 5 }}>
+    <View style={{ flex: 1, minWidth: 86, gap: 4 }}>
       <Text
         style={{
-          fontSize: 32,
-          fontWeight: "800",
+          fontFamily: D,
+          fontSize: 44,
+          lineHeight: 49,
+          fontWeight: "700",
           color: C.navy,
-          letterSpacing: -1,
         }}
       >
         {value}

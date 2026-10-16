@@ -3,7 +3,8 @@ import { View, Text } from "react-native";
 import { Gift, Star } from "lucide-react-native";
 import { useStore } from "../../lib/store";
 import { REWARDS } from "../../lib/progress";
-import { Screen, Heading, Card, Button, C, S } from "../../components/ui";
+import { Screen, Heading, Card, Button, C, D, S } from "../../components/ui";
+import { Medal, RewardArt } from "../../components/ClubVisuals";
 export default function Rewards() {
   const points = useStore((s) => s.totalPoints),
     requests = useStore((s) => s.redemptionRequests);
@@ -18,13 +19,30 @@ export default function Rewards() {
         title="Good habits. Shared rewards."
         detail="Choose something to look forward to. Parents approve every request and arrange the reward."
       />
-      <View style={S.hero}>
-        <Star color="#E9AF92" size={25} />
-        <Text style={[S.title, S.white]}>{points} points to use</Text>
-        <Text style={[S.body, S.light]}>
-          Each practice day earns 10 points. Points have no cash value. These
-          are family rewards, not purchases.
-        </Text>
+      <View
+        style={[
+          S.hero,
+          {
+            flexDirection: "row",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: 18,
+          },
+        ]}
+      >
+        <Medal index={1} size={78} />
+        <View style={{ flex: 1, minWidth: 160, gap: 9 }}>
+          <Text style={[S.eyebrow, { color: C.lime }]}>
+            YOUR HARD-EARNED POINTS
+          </Text>
+          <Text style={[S.title, S.white, { fontSize: 48, lineHeight: 52 }]}>
+            {points} points to use
+          </Text>
+          <Text style={[S.small, S.light]}>
+            Each practice day earns 10 points. Points have no cash value. These
+            are family rewards, not purchases.
+          </Text>
+        </View>
       </View>
       {message ? (
         <Text role="status" style={[S.body, { color: C.green }]}>
@@ -46,16 +64,25 @@ export default function Rewards() {
         </Card>
       )}
       <View style={S.grid}>
-        {REWARDS.map((r) => {
+        {REWARDS.map((r, i) => {
           const pending = requests.some(
             (q) => q.itemName === r.name && q.status === "pending",
           );
           return (
-            <Card key={r.name} style={{ flex: 1, minWidth: 260 }}>
-              <Gift color={C.red} size={28} />
-              <Text style={S.eyebrow}>{r.cost} POINTS</Text>
+            <Card
+              key={r.name}
+              style={{ flex: 1, flexBasis: "43%", minWidth: 260, padding: 18 }}
+            >
+              <RewardArt index={i} />
+              <View style={[S.row, { gap: 6 }]}>
+                <Star color={C.gold} size={14} />
+                <Text style={[S.eyebrow, { color: C.gold }]}>
+                  {r.cost} POINTS
+                </Text>
+              </View>
               <Text style={S.h2}>{r.name}</Text>
               <Text style={S.body}>{r.detail}</Text>
+              <View style={{ flex: 1 }} />
               <Button
                 title={
                   pending
