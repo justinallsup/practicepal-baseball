@@ -21,6 +21,7 @@ import {
   S,
   C,
 } from "../../components/ui";
+import { Ring } from "../../components/ClubVisuals";
 function Controls() {
   const state = useStore();
   const [name, setName] = useState(state.child?.name ?? ""),
@@ -143,7 +144,12 @@ function Controls() {
         </Text>
       ) : null}
       <View style={S.hero}>
-        <Text style={[S.eyebrow, { color: "#E9AF92" }]}>THIS WEEK’S RECAP</Text>
+        <View
+          style={{ position: "absolute", right: 22, top: 20, opacity: 0.16 }}
+        >
+          <Ring value={week} total={goal} size={160} dark />
+        </View>
+        <Text style={[S.eyebrow, { color: C.lime }]}>THIS WEEK’S RECAP</Text>
         <Text style={[S.h2, S.white]}>
           {state.child?.name} practiced on {week} {week === 1 ? "day" : "days"}.
         </Text>

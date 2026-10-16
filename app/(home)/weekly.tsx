@@ -6,7 +6,17 @@ import Svg, { Polyline, Circle } from "react-native-svg";
 import { useStore } from "../../lib/store";
 import { achievements, METRICS, type Metric } from "../../lib/progress";
 import { getWeekDates, getToday } from "../../lib/utils";
-import { Screen, Heading, Card, Button, Stat, C, S } from "../../components/ui";
+import {
+  Screen,
+  Heading,
+  Card,
+  Button,
+  Stat,
+  C,
+  D,
+  S,
+} from "../../components/ui";
+import { Medal, Ring, SectionTitle } from "../../components/ClubVisuals";
 export default function Progress() {
   const state = useStore(),
     dates = getWeekDates();
@@ -35,6 +45,35 @@ export default function Progress() {
         title="Progress worth noticing."
         detail="Real practice records. Small milestones. No comparisons with other players."
       />
+      <View
+        style={[
+          S.hero,
+          {
+            flexDirection: "row",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: 18,
+          },
+        ]}
+      >
+        <Medal index={2} size={78} earned={days > 0} />
+        <View style={{ flex: 1, minWidth: 160, gap: 7 }}>
+          <Text style={[S.eyebrow, { color: C.lime }]}>
+            THE WORK IS ADDING UP
+          </Text>
+          <Text
+            style={[
+              S.display,
+              { fontSize: 38, lineHeight: 39, color: C.white },
+            ]}
+          >
+            {days ? "LOOK HOW FAR YOU’VE COME." : "YOUR STORY STARTS HERE."}
+          </Text>
+          <Text style={[S.small, S.light]}>
+            Every practice is a step toward the player you want to be.
+          </Text>
+        </View>
+      </View>
       <Card>
         <View style={S.row}>
           <Stat value={days} label="Practice days" />
@@ -72,8 +111,9 @@ export default function Progress() {
                 style={{
                   width: "100%",
                   height: Math.max(4, (w.count / 7) * 95),
-                  borderRadius: 5,
-                  backgroundColor: i === 7 ? C.red : C.navy,
+                  borderTopLeftRadius: 10,
+                  borderTopRightRadius: 10,
+                  backgroundColor: i === 7 ? C.green : "#A6BDA3",
                 }}
               />
               <Text style={[S.small, { fontSize: 10 }]}>{w.label}</Text>
@@ -83,22 +123,20 @@ export default function Progress() {
       </Card>
       <Text style={S.h2}>Milestones earned by showing up</Text>
       <View style={S.grid}>
-        {badges.map((b) => (
+        {badges.map((b, i) => (
           <Card
             key={b.title}
             style={{
               flex: 1,
-              minWidth: 240,
+              minWidth: 150,
+              flexBasis: "30%",
+              alignItems: "center",
               backgroundColor: b.earned ? C.pale : C.white,
             }}
           >
-            {b.earned ? (
-              <Award size={28} color={C.green} />
-            ) : (
-              <LockKeyhole size={25} color={C.muted} />
-            )}
-            <Text style={S.h3}>{b.title}</Text>
-            <Text style={S.body}>{b.detail}</Text>
+            <Medal index={i} earned={b.earned} size={90} />
+            <Text style={[S.h3, { textAlign: "center" }]}>{b.title}</Text>
+            <Text style={[S.small, { textAlign: "center" }]}>{b.detail}</Text>
             <Text
               style={[
                 S.small,

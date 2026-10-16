@@ -8,7 +8,7 @@ import {
   ShieldCheck,
 } from "lucide-react-native";
 import { useStore } from "../../lib/store";
-import { C } from "../../components/ui";
+import { C, F } from "../../components/ui";
 export default function Layout() {
   const complete = useStore((s) => s.onboardingComplete);
   const [ready, setReady] = useState(useStore.persist.hasHydrated());
@@ -23,16 +23,18 @@ export default function Layout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: C.red,
-        tabBarInactiveTintColor: C.muted,
+        tabBarActiveTintColor: C.lime,
+        tabBarInactiveTintColor: "#B4C5B9",
         tabBarStyle: {
-          backgroundColor: C.white,
-          borderTopColor: C.line,
-          height: 70,
+          backgroundColor: C.navy,
+          borderTopColor: "#29483C",
+          height: 76,
           paddingTop: 8,
           paddingBottom: 10,
         },
-        tabBarLabelStyle: { fontSize: 11, fontWeight: "700" },
+        tabBarLabelStyle: { fontFamily: F, fontSize: 10, fontWeight: "800" },
+        tabBarActiveBackgroundColor: "#1B3B31",
+        tabBarItemStyle: { marginHorizontal: 4, borderRadius: 14 },
       }}
     >
       <Tabs.Screen

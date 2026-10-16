@@ -3,6 +3,7 @@ import { View, Text } from "react-native";
 import { useFocusEffect } from "expo-router";
 import { ShieldCheck } from "lucide-react-native";
 import { Screen, Heading, Card, Field, Button, C, S } from "./ui";
+import { Medal } from "./ClubVisuals";
 export default function ParentGate({ children }: React.PropsWithChildren) {
   const [open, setOpen] = useState(false),
     [answer, setAnswer] = useState(""),
@@ -28,7 +29,9 @@ export default function ParentGate({ children }: React.PropsWithChildren) {
         detail="Manage goals, approve rewards, and look after your family’s records."
       />
       <Card style={{ maxWidth: 520, width: "100%", alignSelf: "center" }}>
-        <ShieldCheck size={36} color={C.green} />
+        <View style={{ alignItems: "center", paddingVertical: 10 }}>
+          <Medal index={5} size={98} />
+        </View>
         <Text style={S.h2}>A quick grown-up check</Text>
         <Text style={S.body}>Ask a parent or guardian to continue.</Text>
         <Field
