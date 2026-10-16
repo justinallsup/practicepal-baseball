@@ -16,9 +16,6 @@ export default function PaywallScreen() {
   const child = useStore(s => s.child)
   const getCurrentStreak = useStore(s => s.getCurrentStreak)
   const getWeekLogs = useStore(s => s.getWeekLogs)
-  const activateSubscription = useStore(s => s.activateSubscription)
-  const startTrial = useStore(s => s.startTrial)
-  const subscriptionStatus = useStore(s => s.subscriptionStatus)
   const reward = useStore(s => s.reward)
   const getRewardProgress = useStore(s => s.getRewardProgress)
   const totalPoints = useStore(s => s.totalPoints)
@@ -31,11 +28,8 @@ export default function PaywallScreen() {
   const rewardProgress = reward ? getRewardProgress() : 0
   const rewardPct = reward ? Math.round((rewardProgress / reward.targetValue) * 100) : 0
 
-  const handleContinue = () => {
-    // TODO: integrate Stripe or RevenueCat for real payment
-    activateSubscription(selectedPlan)
-    router.replace('/(home)')
-  }
+  // Purchases are disabled until verified App Store / Play Billing entitlements are integrated.
+  // Never activate a paid subscription from local state or an unverified button press.
 
   const handleMaybeLater = () => {
     router.back()
@@ -48,7 +42,7 @@ export default function PaywallScreen() {
           {/* Header */}
           <Text style={styles.headline}>Don't let the momentum stop ⚾</Text>
           <Text style={styles.subhead}>
-            Most kids increase practice in the first week
+            Build a practice routine, one session at a time
           </Text>
 
           {/* Dynamic stats */}
@@ -113,8 +107,8 @@ export default function PaywallScreen() {
               'Unlimited practice tracking',
               'Reward system that motivates',
               'Streak tracking & momentum',
-              'Leaderboard + teammates',
-              'Parent dashboard & insights',
+              'Weekly practice progress',
+              'Practice history and rewards',
             ].map(feature => (
               <View key={feature} style={styles.featureRow}>
                 <Text style={styles.featureCheck}>✓</Text>
@@ -126,15 +120,16 @@ export default function PaywallScreen() {
           {/* CTA */}
           <TouchableOpacity
             style={styles.primaryButton}
-            onPress={handleContinue}
+            disabled={true}
+            accessibilityState={{ disabled: true }}
             activeOpacity={0.85}
           >
             <Text style={styles.primaryButtonText}>
-              {selectedPlan === 'yearly' ? 'Start Free Trial — Save 37%' : 'Start Free Trial →'}
+              {'Subscriptions coming soon'}
             </Text>
           </TouchableOpacity>
 
-          <Text style={styles.legal}>Cancel anytime in 2 taps</Text>
+          <Text style={styles.legal}>Purchases are not yet available. No payment will be taken.</Text>
 
           <TouchableOpacity
             style={styles.secondaryButton}
@@ -271,7 +266,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   primaryButton: {
-    backgroundColor: '#3b82f6',
+    backgroundColor: '#64748b',
     borderRadius: 16,
     height: 60,
     justifyContent: 'center',
