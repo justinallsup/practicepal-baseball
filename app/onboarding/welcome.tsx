@@ -126,12 +126,12 @@ export default function Welcome() {
             
             {/* Subtitle with better spacing */}
             <Text style={styles.subtitle}>
-              Most kids improve in the first week.{'\n'}You're 30 seconds away from a system that works.
+              Build a consistent practice habit.{'\n'}Start tracking your progress today.
             </Text>
 
             {/* Social proof */}
             <View style={styles.proofContainer}>
-              <Text style={styles.proofText}>⭐ Trusted by 1,000+ baseball families</Text>
+              <Text style={styles.proofText}>⚾ Practice with purpose, celebrate progress</Text>
             </View>
           </View>
 
@@ -155,7 +155,7 @@ export default function Welcome() {
             </Animated.View>
 
             {/* Secondary info */}
-            <Text style={styles.secondaryText}>Free 3-day trial • No credit card required</Text>
+            <Text style={styles.secondaryText}>Start tracking practice in minutes</Text>
           </View>
         </Animated.View>
       </SafeAreaView>
