@@ -58,7 +58,6 @@ export default function AddRewardScreen() {
     if (pendingChild) {
       completeOnboarding({
         id: Date.now().toString(),
-        familyId: 'demo-family',
         name: pendingChild.name,
         avatar: pendingChild.avatar,
         goalPerWeek: 3,
@@ -82,7 +81,6 @@ export default function AddRewardScreen() {
     if (pendingChild) {
       completeOnboarding({
         id: Date.now().toString(),
-        familyId: 'demo-family',
         name: pendingChild.name,
         avatar: pendingChild.avatar,
         goalPerWeek: 3,
