@@ -1,7 +1,5 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { Tabs } from 'expo-router'
-import { useStore } from '../../lib/store'
-import { router } from 'expo-router'
 import { Text } from 'react-native'
 
 function TabIcon({ emoji }: { emoji: string }) {
@@ -9,15 +7,7 @@ function TabIcon({ emoji }: { emoji: string }) {
 }
 
 export default function HomeLayout() {
-  const isTrialExpired = useStore(s => s.isTrialExpired)
-  const subscriptionStatus = useStore(s => s.subscriptionStatus)
-
-  useEffect(() => {
-    if (isTrialExpired() && subscriptionStatus !== 'active') {
-      router.replace('/(home)/paywall')
-    }
-  }, [subscriptionStatus])
-
+  // Subscription gating is disabled until verified store billing is available.
   return (
     <Tabs
       screenOptions={{
