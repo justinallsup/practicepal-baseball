@@ -21,7 +21,7 @@ import {
 } from "../../components/ui";
 import { PhotoPanel, SectionTitle } from "../../components/ClubVisuals";
 import PracticeFlow from "../../components/PracticeFlow";
-import DrillDiagram from "../../components/DrillDiagram";
+import DrillGuide from "../../components/DrillGuide";
 export default function Training() {
   const child = useStore((s) => s.child),
     goals = useStore((s) => s.improvementGoals),
@@ -130,7 +130,11 @@ export default function Training() {
           practice ideas, not a throwing workload prescription.
         </Text>
       </View>
-      <Heading eyebrow="THE DRILL LIBRARY" title="Find your next focus." />
+      <Heading
+        eyebrow="THE DRILL LIBRARY"
+        title="See it. Try it. Make it yours."
+        detail="Six original animated guides. Watch the movement, then take it to the field."
+      />
       <View style={S.row}>
         {["All", "Hitting", "Fielding", "Pitching", "Speed"].map((f) => (
           <Chip
@@ -157,27 +161,7 @@ export default function Training() {
               padding: 18,
             }}
           >
-            <View
-              style={{
-                backgroundColor: C.navy,
-                borderRadius: 16,
-                overflow: "hidden",
-              }}
-            >
-              <View style={[S.between, { padding: 15, paddingBottom: 0 }]}>
-                <Text style={[S.eyebrow, { color: C.lime, fontSize: 9 }]}>
-                  {d.skill === "Pitching"
-                    ? "Throwing"
-                    : d.skill === "Speed"
-                      ? "Footwork"
-                      : d.skill}
-                </Text>
-                <Text style={[S.small, { color: "#D7E2D9" }]}>
-                  {d.minutes} MIN
-                </Text>
-              </View>
-              <DrillDiagram skill={d.skill} />
-            </View>
+            <DrillGuide drill={d} />
             <Text style={[S.h2, { fontSize: 20 }]}>{d.title}</Text>
             <Text style={S.body}>{d.instructions}</Text>
             <View style={{ flex: 1 }} />

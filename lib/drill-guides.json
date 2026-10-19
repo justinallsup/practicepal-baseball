@@ -1,0 +1,122 @@
+[
+  {
+    "id": "tee-contact",
+    "title": "Tee contact ladder",
+    "category": "Hitting",
+    "duration": 18,
+    "steps": [
+      {
+        "title": "Set your station",
+        "cue": "Helmet on. Tee in front. Clear the hitting area."
+      },
+      {
+        "title": "Make smooth contact",
+        "cue": "Send the ball toward the net with a controlled swing."
+      },
+      {
+        "title": "Balance, then reset",
+        "cue": "Finish balanced. Reset before the next ball."
+      }
+    ]
+  },
+  {
+    "id": "soft-toss",
+    "title": "Soft toss rhythm",
+    "category": "Hitting",
+    "duration": 18,
+    "steps": [
+      {
+        "title": "Make room to swing",
+        "cue": "Helmet on. Adult to the side, clear of the bat."
+      },
+      {
+        "title": "Toss, track, contact",
+        "cue": "An adult gently tosses a soft ball into the hitting area."
+      },
+      {
+        "title": "Find your rhythm",
+        "cue": "Hit toward the net. Pause before the next toss."
+      }
+    ]
+  },
+  {
+    "id": "ground-ball",
+    "title": "Ground-ball fundamentals",
+    "category": "Fielding",
+    "duration": 18,
+    "steps": [
+      {
+        "title": "Get ready and low",
+        "cue": "Bend your knees. Show an open glove out front."
+      },
+      {
+        "title": "Meet the gentle roll",
+        "cue": "Watch the ball into your glove on a level surface."
+      },
+      {
+        "title": "Secure, then reset",
+        "cue": "Bring the ball in. Set your feet before a return throw."
+      }
+    ]
+  },
+  {
+    "id": "catching",
+    "title": "Two-hand catch",
+    "category": "Fielding",
+    "duration": 18,
+    "steps": [
+      {
+        "title": "Show a ready glove",
+        "cue": "Use a soft ball and a comfortable distance."
+      },
+      {
+        "title": "Watch it all the way",
+        "cue": "Receive a gentle, easy-to-reach throw in your glove."
+      },
+      {
+        "title": "Secure the catch",
+        "cue": "Use your free hand to secure the ball, then reset."
+      }
+    ]
+  },
+  {
+    "id": "target-throws",
+    "title": "Throwing target game",
+    "category": "Throwing",
+    "duration": 18,
+    "steps": [
+      {
+        "title": "Pick a big target",
+        "cue": "Warm up first. Choose a comfortable distance."
+      },
+      {
+        "title": "Step toward your target",
+        "cue": "Use an easy throw. Accuracy matters more than power."
+      },
+      {
+        "title": "Reset between throws",
+        "cue": "Count your hits. Rest as needed and follow coach limits."
+      }
+    ]
+  },
+  {
+    "id": "footwork",
+    "title": "Quick feet and balance",
+    "category": "Footwork",
+    "duration": 18,
+    "steps": [
+      {
+        "title": "Walk the line first",
+        "cue": "Set four cones on flat ground with room to move."
+      },
+      {
+        "title": "Shuffle with control",
+        "cue": "Stay low. Use small side steps without crossing feet."
+      },
+      {
+        "title": "Stay balanced",
+        "cue": "Pause at the end. Return, then rest between rounds."
+      }
+    ]
+  }
+]

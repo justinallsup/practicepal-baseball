@@ -7,6 +7,7 @@ import type { PracticeDuration } from "../lib/practice-types";
 import { elapsedForSession } from "../lib/session-clock";
 import { TRAINING_DRILLS } from "../lib/training-plan";
 import { C, S, D, Card, Button, Chip, Heading } from "./ui";
+import DrillGuide from "./DrillGuide";
 
 export default function PracticeFlow({
   visible,
@@ -184,6 +185,7 @@ export default function PracticeFlow({
               {drills.map((d) => (
                 <Card key={d.id}>
                   <Text style={S.h3}>{d.title}</Text>
+                  <DrillGuide drill={d} compact />
                   <Text style={S.body}>{d.instructions}</Text>
                   <Text style={S.small}>{d.safety}</Text>
                 </Card>
@@ -265,6 +267,7 @@ export default function PracticeFlow({
                 drills.map((d) => (
                   <Card key={d.id}>
                     <Text style={S.h3}>{d.title}</Text>
+                    <DrillGuide drill={d} compact />
                     <Text style={S.body}>{d.instructions}</Text>
                     <Text style={S.small}>Bring: {d.equipment}</Text>
                     <Text style={S.small}>{d.safety}</Text>
