@@ -29,7 +29,8 @@ export const TRAINING_DRILLS: TrainingDrill[] = [
     equipment: "Bat, helmet, soft balls, net",
     instructions:
       "Work through 3 sets of 6 tosses with a trusted adult. Pause and reset after each set.",
-    safety: "Keep everyone behind the hitter and use a safe net.",
+    safety:
+      "Keep helpers outside the swing and ball path; use soft balls and a secure net.",
   },
   {
     id: "ground-ball",

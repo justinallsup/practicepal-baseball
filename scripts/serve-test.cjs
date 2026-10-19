@@ -22,12 +22,34 @@ http
       ".png": "image/png",
       ".svg": "image/svg+xml",
       ".json": "application/json",
+      ".jpg": "image/jpeg",
+      ".ttf": "font/ttf",
+      ".mp4": "video/mp4",
+      ".vtt": "text/vtt",
     };
     res.setHeader(
       "Content-Type",
       types[path.extname(file)] || "application/octet-stream",
     );
-    fs.createReadStream(file).pipe(res);
+    const size = fs.statSync(file).size;
+    res.setHeader("Accept-Ranges", "bytes");
+    const range = req.headers.range?.match(/^bytes=(\d+)-(\d*)$/);
+    if (range) {
+      const start = Number(range[1]);
+      const end = range[2] ? Math.min(Number(range[2]), size - 1) : size - 1;
+      if (start > end || start >= size) {
+        res.writeHead(416, { "Content-Range": `bytes */${size}` });
+        return res.end();
+      }
+      res.writeHead(206, {
+        "Content-Range": `bytes ${start}-${end}/${size}`,
+        "Content-Length": end - start + 1,
+      });
+      fs.createReadStream(file, { start, end }).pipe(res);
+    } else {
+      res.setHeader("Content-Length", size);
+      fs.createReadStream(file).pipe(res);
+    }
   })
   .listen(4173, "0.0.0.0", () =>
     console.log("PracticePal test server: http://localhost:4173"),

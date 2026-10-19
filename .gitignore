@@ -45,3 +45,6 @@ yarn-error.*
 playwright-report/
 test-results/
 coverage/
+
+# Media generator cache
+__pycache__/
