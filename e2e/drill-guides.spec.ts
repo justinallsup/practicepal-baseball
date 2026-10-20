@@ -7,7 +7,7 @@ async function openTraining(page: import("@playwright/test").Page) {
   await page.getByLabel("Player nickname").fill("Riley");
   await page.getByRole("button", { name: "I’m the parent or guardian setting this up" }).click();
   await page.getByRole("button", { name: "Create my plan" }).click();
-  await page.getByRole("tab", { name: "Training", exact: true }).click();
+  await page.getByRole("tab", { name: "Play", exact: true }).click();
 }
 
 test("guides credit sources, open the correct references, and never preload external media or award practice credit", async ({ page, context }, testInfo) => {

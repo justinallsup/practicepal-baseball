@@ -47,8 +47,17 @@ export default function Layout() {
       <Tabs.Screen
         name="training"
         options={{
-          title: "Training",
+          title: "Play",
           tabBarIcon: ({ color }) => <Target color={color} size={21} />,
+        }}
+      />
+      <Tabs.Screen
+        name="store"
+        options={{
+          title: "Rewards",
+          tabBarActiveTintColor: C.navy,
+          tabBarActiveBackgroundColor: C.electric,
+          tabBarIcon: ({ color }) => <Gift color={color} size={21} />,
         }}
       />
       <Tabs.Screen
@@ -58,13 +67,6 @@ export default function Layout() {
           tabBarIcon: ({ color }) => (
             <ChartNoAxesColumn color={color} size={21} />
           ),
-        }}
-      />
-      <Tabs.Screen
-        name="store"
-        options={{
-          title: "Rewards",
-          tabBarIcon: ({ color }) => <Gift color={color} size={21} />,
         }}
       />
       <Tabs.Screen

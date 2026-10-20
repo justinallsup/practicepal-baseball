@@ -27,6 +27,9 @@ export const C = {
   gold: "#956B25",
   lime: "#E8C77A",
   dark: "#0B211D",
+  electric: "#D4F66A",
+  coral: "#FF8A64",
+  violet: "#D8CCFF",
 };
 export const F = Platform.OS === "web" ? "Manrope" : undefined;
 export const D = Platform.OS === "web" ? "BarlowCondensed" : undefined;
@@ -248,6 +251,7 @@ export function Button({
   disabled,
   testID,
   gold = false,
+  accessibilityLabel,
 }: {
   title: string;
   onPress: () => void;
@@ -255,11 +259,12 @@ export function Button({
   disabled?: boolean;
   testID?: string;
   gold?: boolean;
+  accessibilityLabel?: string;
 }) {
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={title}
+      accessibilityLabel={accessibilityLabel ?? title}
       accessibilityState={{ disabled: !!disabled }}
       testID={testID}
       disabled={disabled}

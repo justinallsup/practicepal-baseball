@@ -80,6 +80,10 @@ function Controls() {
         benchmarks: state.benchmarks,
         reward: state.reward,
         rewards: state.redemptionRequests,
+        rewardGoal: {
+          name: state.rewardGoalName,
+          requestId: state.rewardGoalRequestId,
+        },
         practiceSettings: state.practiceSettings,
         points: state.totalPoints,
         pointsHistory: state.pointsHistory,

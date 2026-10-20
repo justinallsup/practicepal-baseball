@@ -191,17 +191,61 @@ describe("time, training, milestones", () => {
   });
 });
 
-describe('family goal rewards', () => {
-  it('earns an existing parent goal only after enough practice', () => {
-    const s = useStore.getState()
-    s.setReward({childName:'Sam',rewardName:'Park trip',targetType:'weekly_goal',targetValue:1})
-    s.markRewardEarned()
-    expect(useStore.getState().reward?.earnedAt).toBeNull()
-    s.logPractice(['Hitting'])
-    expect(useStore.getState().reward?.earnedAt).toBeTruthy()
-  })
-  it('rejects invalid family goal targets', () => {
-    useStore.getState().setReward({childName:'Sam',rewardName:'Park trip',targetType:'weekly_goal',targetValue:0})
-    expect(useStore.getState().reward).toBeNull()
-  })
-})
+describe("family goal rewards", () => {
+  it("earns an existing parent goal only after enough practice", () => {
+    const s = useStore.getState();
+    s.setReward({
+      childName: "Sam",
+      rewardName: "Park trip",
+      targetType: "weekly_goal",
+      targetValue: 1,
+    });
+    s.markRewardEarned();
+    expect(useStore.getState().reward?.earnedAt).toBeNull();
+    s.logPractice(["Hitting"]);
+    expect(useStore.getState().reward?.earnedAt).toBeTruthy();
+  });
+  it("rejects invalid family goal targets", () => {
+    useStore
+      .getState()
+      .setReward({
+        childName: "Sam",
+        rewardName: "Park trip",
+        targetType: "weekly_goal",
+        targetValue: 0,
+      });
+    expect(useStore.getState().reward).toBeNull();
+  });
+});
+
+describe("chosen reward goals", () => {
+  it("lets a player change goals without spending points and rejects unknown rewards", () => {
+    const s = useStore.getState();
+    s.addPoints(20, "practice");
+    s.setRewardGoal("Pick a favorite treat");
+    expect(useStore.getState().rewardGoalName).toBe("Pick a favorite treat");
+    expect(useStore.getState().totalPoints).toBe(20);
+    expect(useStore.getState().redemptionRequests).toEqual([]);
+    s.setRewardGoal("Unlisted prize");
+    expect(useStore.getState().rewardGoalName).toBe("Pick a favorite treat");
+  });
+  it("tracks the selected reward request and allows choosing the same goal again after approval", () => {
+    const s = useStore.getState();
+    s.setRewardGoal("Pick a favorite treat");
+    s.addPoints(20, "practice");
+    s.requestRedemption("Pick a favorite treat", 20);
+    const id = useStore.getState().redemptionRequests[0].id;
+    expect(useStore.getState().rewardGoalRequestId).toBe(id);
+    s.approveRedemption(id);
+    s.setRewardGoal("Pick a favorite treat");
+    expect(useStore.getState().rewardGoalRequestId).toBeNull();
+    expect(useStore.getState().totalPoints).toBe(0);
+    expect(useStore.getState().redemptionRequests[0].status).toBe("approved");
+  });
+  it("resets the goal and linked request with all other local records", () => {
+    useStore.getState().setRewardGoal("Pick a favorite treat");
+    useStore.getState().reset();
+    expect(useStore.getState().rewardGoalName).toBe(REWARDS[0].name);
+    expect(useStore.getState().rewardGoalRequestId).toBeNull();
+  });
+});

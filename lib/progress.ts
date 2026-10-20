@@ -120,4 +120,14 @@ export const REWARDS = [
     cost: 150,
     detail: "Make a memory away from the screen.",
   },
+  {
+    name: "Pick a favorite treat",
+    cost: 20,
+    detail: "Choose a little celebration with your parent.",
+  },
+  {
+    name: "Bonus game time",
+    cost: 40,
+    detail: "Agree on some extra game time with your parent.",
+  },
 ];

@@ -92,6 +92,9 @@ export interface AppState extends PracticeStoreState {
 
   // Points economy
   totalPoints: number;
+  rewardGoalName: string;
+  rewardGoalRequestId: string | null;
+  setRewardGoal: (name: string) => void;
   pointsHistory: PointsHistoryEntry[];
 
   // Mode
@@ -199,6 +202,8 @@ export const useStore = create<AppState>()(
       subscriptionPlan: null,
       totalLogsCount: 0,
       reward: null,
+      rewardGoalName: REWARDS[0].name,
+      rewardGoalRequestId: null,
       totalPoints: 0,
       pointsHistory: [],
       mode: "parent",
@@ -311,6 +316,8 @@ export const useStore = create<AppState>()(
           subscriptionPlan: null,
           totalLogsCount: 0,
           reward: null,
+          rewardGoalName: REWARDS[0].name,
+          rewardGoalRequestId: null,
           totalPoints: 0,
           pointsHistory: [],
           mode: "parent",
@@ -405,6 +412,11 @@ export const useStore = create<AppState>()(
         }));
       },
 
+      setRewardGoal: (name) => {
+        if (!REWARDS.some((r) => r.name === name)) return;
+        set({ rewardGoalName: name, rewardGoalRequestId: null });
+      },
+
       requestRedemption: (itemName: string, pointCost: number) => {
         const state = get();
         if (
@@ -418,6 +430,8 @@ export const useStore = create<AppState>()(
         const id = Date.now().toString() + Math.random();
         set((s) => ({
           totalPoints: s.totalPoints - pointCost,
+          rewardGoalRequestId:
+            s.rewardGoalName === itemName ? id : s.rewardGoalRequestId,
           redemptionRequests: [
             ...s.redemptionRequests,
             {
@@ -462,7 +476,7 @@ export const useStore = create<AppState>()(
     }),
     {
       name: "practicepal-storage",
-      version: 1,
+      version: 2,
       migrate: (persisted: any) => ({
         ...persisted,
         leaderboard: [],
@@ -471,6 +485,12 @@ export const useStore = create<AppState>()(
         trialStartedAt: null,
         trialStartDate: null,
         benchmarks: persisted?.benchmarks ?? [],
+        rewardGoalName: REWARDS.some(
+          (r) => r.name === persisted?.rewardGoalName,
+        )
+          ? persisted.rewardGoalName
+          : REWARDS[0].name,
+        rewardGoalRequestId: persisted?.rewardGoalRequestId ?? null,
       }),
       storage: createJSONStorage(() => {
         if (Platform.OS === "web") {
