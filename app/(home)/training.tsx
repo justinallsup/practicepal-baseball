@@ -133,7 +133,7 @@ export default function Training() {
       <Heading
         eyebrow="THE DRILL LIBRARY"
         title="See it. Try it. Make it yours."
-        detail="Six original animated guides. Watch the movement, then take it to the field."
+        detail="Simple practice cues, with video references from established baseball educators."
       />
       <View style={S.row}>
         {["All", "Hitting", "Fielding", "Pitching", "Speed"].map((f) => (

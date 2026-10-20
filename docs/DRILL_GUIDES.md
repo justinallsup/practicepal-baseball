@@ -1,73 +1,34 @@
-# PracticePal original animated guides
+# Coaching references and PracticePal cues
 
-Created October 19, 2026 for the six existing PracticePal drills. Each is an
-18-second, silent, 1280 × 720 H.264 MP4. These are simplified illustrated setup
-and movement guides, not filmed instruction or a biomechanical model. No claim
-of professional coach approval is made. A qualified coach should review the
-teaching content before these are marketed as expert technique instruction.
+The original six block-figure animations were removed on October 20, 2026 after user feedback that their visual and instructional quality was inadequate. Their renderer, MP4s, posters, thumbnails and captions are no longer shipped. Git history preserves the prior implementation.
 
-## Asset provenance
+## Current experience
 
-- All figures, diagrams, movement paths, compositions, captions, and timing were
-  created for this project in `scripts/render-drill-guides.py`.
-- No third-party video, still frames, scripts, music, voice, likeness, logos, or
-  animation was downloaded, traced, or reused. No external video embed loads.
-- The existing self-hosted Barlow Condensed and Manrope fonts are used under their
-  committed SIL Open Font Licenses in `public/fonts/`.
-- Source and rendered assets are committed in the project repository. These are
-  original PracticePal assets; this does not represent a legal determination of
-  exclusive copyright protection for AI-assisted output.
-- The external resources below informed general instructional concepts only.
-  Their publishers have not endorsed PracticePal or licensed their videos to it.
+Every drill has original, text-based PracticePal practice cues. Five link to independent coaching videos; footwork links to a written coaching resource. Links open the provider's website in a separate tab on web or the system browser on native. They do not grant practice credit or close the practice session. No third-party player, poster, thumbnail or media is loaded by PracticePal. Web links use `noopener noreferrer`, and URLs contain no player data. Generic PracticePal editorial photos decorate guide cards; they are not screenshots from the linked footage.
 
-## Reference resources reviewed
+The videos teach related fundamentals, not the exact PracticePal repetitions or equipment. This distinction and source credit are visible in each guide. Providers may show ads, use cookies, change content, or remove access. Users are advised to watch with an adult. Written cues remain available if a source cannot be reached.
 
-| Topic | Reference | Use |
+## Sources checked October 20, 2026
+
+| PracticePal drill | Provider and resource | Use |
 | --- | --- | --- |
-| Tee station | https://www.littleleague.org/university/articles/tee-ball-drills-tee-hitting/ | General equipment and supervised station setup |
-| Soft toss | https://www.littleleague.org/university/articles/backyard-tip-soft-toss/ | Adult to the side, underhand soft toss, helmet, clear swing area |
-| Ground balls | https://www.littleleague.org/university/articles/infield-drill-progression/ | Gentle rolls, low stance, open glove out front, secure the ball |
-| Catching/throwing | https://www.littleleague.org/help-center/video-tutorials/ | Further learning reference; no footage reused |
-| Footwork | https://www.mlb.com/video/shuffle-drill | Further learning reference; no footage reused |
+| Tee contact ladder | [Little League: The Basics: Hitting](https://www.littleleague.org/videos/the-basics-hitting/) | Video reference for batting fundamentals; not a tee-specific ladder |
+| Soft toss rhythm | [MLB Network: Thome demonstrates soft toss](https://www.mlb.com/video/hitting-drill-demonstration) | Longer coach demonstration; adapt with adult supervision |
+| Ground-ball fundamentals | [Little League: The Basics series](https://www.littleleague.org/university/articles/the-basics-fundamental-baseball-and-softball-skill-development-series/) | Select Fielding a Ground Ball on the series page |
+| Two-hand catch | [Little League: The Basics: Catching](https://www.littleleague.org/videos/the-basics-catching/) | Video reference |
+| Throwing target game | [Little League: The Basics: Throwing](https://www.littleleague.org/videos/the-basics-throwing/) | Throwing fundamentals; not a workload prescription |
+| Quick feet and balance | [Dugout Captain: Four Cone Agility Drill](https://www.dugoutcaptain.com/drill/four-cone-agility-drill/) | Written reference; the player poster explicitly says the drill contains no video |
 
-YouTube's license guidance distinguishes ordinary uploads from explicitly CC BY
-licensed reuse: https://support.google.com/youtube/answer/2797468?hl=en.
-No reusable third-party video license was relied on for this release.
+## Rights and release boundaries
 
-## Files and regeneration
+These are external references, not PracticePal-owned or licensed footage. No video has been downloaded, copied, edited, rebranded, or rehosted, and no provider endorsement is implied. This is an interim content improvement, not delivery of an owned video library.
 
-`lib/drill-guides.json` is the shared caption/transcript source. Each ID maps to
-`public/drills/v1/<id>.mp4`, `.jpg`, `.vtt`, and `-thumb.jpg`.
+YouTube embeds are not included. Its official [embedding guidance](https://support.google.com/youtube/answer/171780?hl=en) requires self-designation for child-directed sites even in privacy-enhanced mode. Adding any third-party embed requires checking applicable terms and privacy behavior before release.
 
-To regenerate, install Pillow and FFmpeg, then run:
+## Standard for future owned footage
 
-```sh
-python scripts/render-drill-guides.py
-```
-
-Use `--id tee-contact` for one guide or `--posters-only` for all still previews.
-Assets are prebuilt and checked in; web deployment does not need Python/FFmpeg.
-When revising published media, bump the media directory version and app source
-path together so browsers and CDN caches cannot retain old video/caption pairs.
-
-## Product behavior
-
-- Cards load only thumbnail images. Video appears on an explicit Watch action;
-  playback requires a Play action. No autoplay, external requests, or tracking.
-- Web player has native controls/full screen, explicit pause/replay, 0.5× speed,
-  burned-in captions, an English WebVTT track, and a readable transcript.
-- Closing the guide unmounts and pauses playback. Failed media leaves the poster,
-  transcript, equipment/practice guidance, and safety copy available.
-- Guides are available in Training and in both practice setup and active sessions.
-  Watching does not create practice records or earn points.
-- Native builds open the first-party MP4 in the device's supported player;
-  transcript and preview remain in the app. This is not an inline native player.
-- Soft-toss safety copy now explicitly keeps helpers outside the swing and ball
-  path. Existing rest and supervision guidance remains in place.
+Film a qualified coach demonstrating each drill with a clear view of feet, hands, equipment and ball. Aim for a short setup, two controlled repetitions, and a freeze-frame cue. Use a wide establishing shot and a useful detail angle, clear narration and captions. Review mechanics and age-appropriate setup with a baseball coach before publication. Obtain the necessary rights from the videographer and participants before making ownership or licensing claims; any paid commission needs the owner's approval. Do not use generated motion as a substitute for a technique demonstration.
 
 ## Verification
 
-The browser suite covers all six videos on desktop and phone viewports: lazy
-loading, duration, actual playback, slow motion, pause, replay, closing, viewport
-fit, zero practice credit, network-failure fallback, and nested practice dialogs.
-Phone emulation is not physical iPhone or Safari QA.
+Automated tests cover every source's destination, visible credit, no unsolicited third-party media requests, no opener access, offline written cues, phone/desktop layout and nested practice-timer behavior. Outbound pages are fixtures in CI; these tests do not prove external availability or coaching quality. Source UI checks are documented in the release notes, with any limits stated explicitly.

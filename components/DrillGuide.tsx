@@ -1,32 +1,20 @@
 import React, { useEffect, useState } from "react";
-import {
-  Image,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
+import { Modal, Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Play } from "lucide-react-native";
+import { ArrowUpRight, BookOpen, Play } from "lucide-react-native";
 import type { TrainingDrill } from "../lib/training-plan";
 import guides from "../lib/drill-guides.json";
-import DrillVideoPlayer from "./DrillVideoPlayer";
+import CoachingVideoLink from "./CoachingVideoLink";
+import { PhotoPanel } from "./ClubVisuals";
 import { Button, C, S } from "./ui";
 
-export default function DrillGuide({
-  drill,
-  compact = false,
-}: {
-  drill: TrainingDrill;
-  compact?: boolean;
+export default function DrillGuide({ drill, compact = false }: {
+  drill: TrainingDrill; compact?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   useEffect(() => {
     if (!open || Platform.OS !== "web") return;
-    // During RN Web's modal entrance animation its parent can still be marked
-    // active. Handle Escape first so it closes this guide, not the practice too.
+    // Keep Escape scoped to this guide while the parent practice modal is open.
     const closeGuide = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
       event.preventDefault();
@@ -38,113 +26,67 @@ export default function DrillGuide({
   }, [open]);
   const guide = guides.find((g) => g.id === drill.id);
   if (!guide) return null;
-  const source = `${Platform.OS === "web" ? "" : "https://baseballpracticepal.com"}/drills/v1/${guide.id}`;
   return (
     <>
       {compact ? (
-        <Button
-          secondary
-          title={`Watch guide: ${drill.title}`}
-          onPress={() => setOpen(true)}
-        />
+        <Button secondary title={`Open guide: ${drill.title}`} onPress={() => setOpen(true)} />
       ) : (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`Watch guide: ${drill.title}`}
-          onPress={() => setOpen(true)}
-          style={({ pressed }) => ({
-            borderRadius: 16,
-            overflow: "hidden",
-            backgroundColor: C.navy,
-            opacity: pressed ? 0.85 : 1,
-          })}
-        >
-          <Image
-            source={{ uri: `${source}-thumb.jpg` }}
-            style={{ width: "100%", aspectRatio: 2.55 }}
-            accessibilityLabel={`${drill.title} setup`}
-          />
-          <View style={[S.between, { padding: 14, gap: 12 }]}>
-            <View style={[S.row, { gap: 8 }]}>
-              <View
-                style={{
-                  backgroundColor: C.lime,
-                  width: 32,
-                  height: 32,
-                  borderRadius: 16,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Play size={15} color={C.navy} fill={C.navy} />
-              </View>
-              <Text style={[S.small, { color: C.white, fontWeight: "700" }]}>
-                Watch guide
-              </Text>
+        <Pressable accessibilityRole="button" accessibilityLabel={`Open guide: ${drill.title}`}
+          onPress={() => setOpen(true)} style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}>
+          <PhotoPanel glove={guide.category !== "Hitting"} style={{ minHeight: 172, borderRadius: 16, padding: 18, justifyContent: "space-between", gap: 26 }}>
+            <View style={S.between}>
+              <Text style={[S.eyebrow, { color: C.lime }]}>{guide.category.toUpperCase()} / GUIDE</Text>
+              <BookOpen size={18} color={C.lime} />
             </View>
-            <Text style={[S.small, { color: C.lime }]}>0:18 · Animated</Text>
-          </View>
+            <View style={[S.between, { gap: 12 }]}>
+              <View style={{ flex: 1, gap: 5 }}>
+                <Text style={[S.h3, { color: C.white }]}>Learn the movement</Text>
+                <Text style={[S.small, { color: "#D3DFD5" }]}>{guide.resource.kind === "video" ? "Video reference" : "Written reference"} · {guide.resource.provider}</Text>
+              </View>
+              <ArrowUpRight size={24} color={C.lime} />
+            </View>
+          </PhotoPanel>
         </Pressable>
       )}
       {open ? (
-        <Modal
-          visible
-          animationType="slide"
-          onRequestClose={() => setOpen(false)}
-        >
+        <Modal visible animationType="slide" onRequestClose={() => setOpen(false)}>
           <SafeAreaView style={S.page}>
             <ScrollView contentContainerStyle={[S.content, { maxWidth: 900 }]}>
               <View style={[S.between, { gap: 12 }]}>
-                <Text style={S.eyebrow}>THE MOTION PLAYBOOK</Text>
-                <Button
-                  secondary
-                  title="Close guide"
-                  onPress={() => setOpen(false)}
-                />
+                <Text style={S.eyebrow}>THE FIELD GUIDE</Text>
+                <Button secondary title="Close guide" onPress={() => setOpen(false)} />
               </View>
-              <Text role="heading" style={S.h2}>
-                {drill.title}
-              </Text>
-              <Text style={S.small}>
-                18-second animated guide · Sound-free · PracticePal original
-              </Text>
-              <DrillVideoPlayer
-                key={guide.id}
-                source={source}
-                title={drill.title}
-              />
-              <Text style={S.h3}>The drill, step by step</Text>
+              <Text role="heading" style={S.h2}>{drill.title}</Text>
+              <View style={{ backgroundColor: C.navy, borderRadius: 22, padding: 24, gap: 16 }}>
+                <View style={[S.row, { gap: 12 }]}>
+                  <View style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: C.lime, alignItems: "center", justifyContent: "center" }}>
+                    <Play size={18} fill={C.navy} color={C.navy} />
+                  </View>
+                  <Text style={[S.eyebrow, { color: C.lime, flex: 1 }]}>{guide.resource.kind === "video" ? "WATCH THE FUNDAMENTALS" : "LEARN THE FOOTWORK"}</Text>
+                </View>
+                <Text style={[S.h2, { color: C.white }]}>{guide.resource.title}</Text>
+                <Text style={[S.small, { color: "#D3DFD5" }]}>{guide.resource.kind === "video" ? "Video by" : "Written guide by"} {guide.resource.provider}</Text>
+                <Text style={[S.body, { color: C.white }]}>{guide.resource.note}</Text>
+                <CoachingVideoLink url={guide.resource.url} provider={guide.resource.provider} kind={guide.resource.kind} />
+                <Text style={[S.small, { color: "#D3DFD5" }]}>Opens an external website. Watch with an adult; the provider may show ads or use cookies.</Text>
+              </View>
+              <Text style={S.h3}>Your practice cues</Text>
               {guide.steps.map((step, i) => (
-                <View
-                  key={step.title}
-                  style={{ flexDirection: "row", gap: 14, paddingVertical: 7 }}
-                >
-                  <Text style={[S.eyebrow, { color: C.green, paddingTop: 4 }]}>
-                    0{i + 1}
-                  </Text>
+                <View key={step.title} style={{ flexDirection: "row", gap: 14, paddingVertical: 7 }}>
+                  <Text style={[S.eyebrow, { color: C.green, paddingTop: 4 }]}>0{i + 1}</Text>
                   <View style={{ flex: 1, gap: 5 }}>
                     <Text style={S.h3}>{step.title}</Text>
                     <Text style={S.body}>{step.cue}</Text>
                   </View>
                 </View>
               ))}
-              <View
-                style={{
-                  backgroundColor: C.pale,
-                  borderRadius: 16,
-                  padding: 18,
-                  gap: 8,
-                }}
-              >
+              <View style={{ backgroundColor: C.pale, borderRadius: 16, padding: 18, gap: 8 }}>
                 <Text style={S.eyebrow}>TAKE IT TO THE FIELD</Text>
                 <Text style={S.small}>Bring: {drill.equipment}</Text>
                 <Text style={S.body}>{drill.instructions}</Text>
                 <Text style={S.small}>{drill.safety}</Text>
               </View>
-              <Text style={S.small}>
-                A simplified setup and movement guide. Practice with an adult
-                and follow your coach’s technique advice.
-              </Text>
+              <Text style={S.small}>These independent references teach related fundamentals; they may use different equipment or repetitions. PracticePal is not affiliated with the providers. Follow your coach’s technique advice.</Text>
             </ScrollView>
           </SafeAreaView>
         </Modal>

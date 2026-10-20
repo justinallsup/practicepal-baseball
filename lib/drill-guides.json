@@ -3,7 +3,6 @@
     "id": "tee-contact",
     "title": "Tee contact ladder",
     "category": "Hitting",
-    "duration": 18,
     "steps": [
       {
         "title": "Set your station",
@@ -17,13 +16,19 @@
         "title": "Balance, then reset",
         "cue": "Finish balanced. Reset before the next ball."
       }
-    ]
+    ],
+    "resource": {
+      "provider": "Little League",
+      "title": "The Basics: Hitting",
+      "url": "https://www.littleleague.org/videos/the-basics-hitting/",
+      "note": "Start with the batting basics, then use the tee and repetition plan below.",
+      "kind": "video"
+    }
   },
   {
     "id": "soft-toss",
     "title": "Soft toss rhythm",
     "category": "Hitting",
-    "duration": 18,
     "steps": [
       {
         "title": "Make room to swing",
@@ -37,13 +42,19 @@
         "title": "Find your rhythm",
         "cue": "Hit toward the net. Pause before the next toss."
       }
-    ]
+    ],
+    "resource": {
+      "provider": "MLB Network",
+      "title": "Thome demonstrates soft toss",
+      "url": "https://www.mlb.com/video/hitting-drill-demonstration",
+      "note": "A longer coach demonstration of soft toss. An adult should adapt the setup to the player’s age and ability.",
+      "kind": "video"
+    }
   },
   {
     "id": "ground-ball",
     "title": "Ground-ball fundamentals",
     "category": "Fielding",
-    "duration": 18,
     "steps": [
       {
         "title": "Get ready and low",
@@ -57,13 +68,19 @@
         "title": "Secure, then reset",
         "cue": "Bring the ball in. Set your feet before a return throw."
       }
-    ]
+    ],
+    "resource": {
+      "provider": "Little League",
+      "title": "The Basics: Fielding a Ground Ball",
+      "url": "https://www.littleleague.org/university/articles/the-basics-fundamental-baseball-and-softball-skill-development-series/",
+      "note": "On the series page, choose “The Basics: Fielding a Ground Ball.” Use the gentle rolls and repetitions below.",
+      "kind": "video"
+    }
   },
   {
     "id": "catching",
     "title": "Two-hand catch",
     "category": "Fielding",
-    "duration": 18,
     "steps": [
       {
         "title": "Show a ready glove",
@@ -77,13 +94,19 @@
         "title": "Secure the catch",
         "cue": "Use your free hand to secure the ball, then reset."
       }
-    ]
+    ],
+    "resource": {
+      "provider": "Little League",
+      "title": "The Basics: Catching",
+      "url": "https://www.littleleague.org/videos/the-basics-catching/",
+      "note": "Watch the catching fundamentals, then work through comfortable throws with an adult.",
+      "kind": "video"
+    }
   },
   {
     "id": "target-throws",
     "title": "Throwing target game",
     "category": "Throwing",
-    "duration": 18,
     "steps": [
       {
         "title": "Pick a big target",
@@ -97,13 +120,19 @@
         "title": "Reset between throws",
         "cue": "Count your hits. Rest as needed and follow coach limits."
       }
-    ]
+    ],
+    "resource": {
+      "provider": "Little League",
+      "title": "The Basics: Throwing",
+      "url": "https://www.littleleague.org/videos/the-basics-throwing/",
+      "note": "Watch the throwing fundamentals, then use a large target and an easy distance. Follow your coach’s workload limits.",
+      "kind": "video"
+    }
   },
   {
     "id": "footwork",
     "title": "Quick feet and balance",
     "category": "Footwork",
-    "duration": 18,
     "steps": [
       {
         "title": "Walk the line first",
@@ -117,6 +146,13 @@
         "title": "Stay balanced",
         "cue": "Pause at the end. Return, then rest between rounds."
       }
-    ]
+    ],
+    "resource": {
+      "provider": "Dugout Captain",
+      "title": "Four Cone Agility Drill",
+      "url": "https://www.dugoutcaptain.com/drill/four-cone-agility-drill/",
+      "note": "Focus on the controlled side shuffle. Walk the pattern first; skip speed and competition until the movement feels comfortable.",
+      "kind": "article"
+    }
   }
 ]

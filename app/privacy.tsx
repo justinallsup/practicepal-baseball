@@ -8,7 +8,7 @@ export default function Privacy() {
       <Heading
         eyebrow="PRIVACY & DATA"
         title="Your family’s records."
-        detail="Web release · Updated October 16, 2026"
+        detail="Web release · Updated October 20, 2026"
       />
       <Card>
         <Text style={S.h2}>A parent-led practice journal</Text>
@@ -38,6 +38,16 @@ export default function Privacy() {
           request paths, and timestamps. Practice records are not intentionally
           sent to a PracticePal backend. No optional analytics or advertising
           SDK is enabled in this release.
+        </Text>
+      </Card>
+      <Card>
+        <Text style={S.h2}>External coaching videos</Text>
+        <Text style={S.body}>
+          Drill guides include links to videos on independent providers’ websites.
+          No external video player or thumbnail loads while you browse PracticePal.
+          Opening a video leaves PracticePal; the provider may use cookies,
+          advertising, or analytics under its own policies. We do not include your
+          player nickname or practice records in these links. Watch with an adult.
         </Text>
       </Card>
       <Card>
