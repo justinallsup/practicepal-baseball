@@ -40,15 +40,13 @@ test("complete family flow persists records, benchmarks, export and deletion", a
     path: testInfo.outputPath("today.png"),
     fullPage: true,
   });
-  await page
-    .getByRole("button", { name: "Start practice", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Let’s play", exact: true }).click();
   await page
     .getByRole("button", { name: "Already practiced? Quick log" })
     .click();
   await page.getByRole("button", { name: "Save completed practice" }).click();
   await expect(
-    page.getByRole("heading", { name: "Practice recorded." }),
+    page.getByRole("heading", { name: "YOU SHOWED UP!" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Back to today" }).click();
   await page.reload();
@@ -101,9 +99,7 @@ test("timer resumes after reload, honors pause, and saves real elapsed time", as
 }) => {
   await setup(page);
   await page.clock.install();
-  await page
-    .getByRole("button", { name: "Start practice", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Let’s play", exact: true }).click();
   await page.getByRole("button", { name: "Start timer", exact: true }).click();
   await page.clock.fastForward("00:01:10");
   await page.getByRole("button", { name: "Pause timer" }).click();
@@ -117,9 +113,9 @@ test("timer resumes after reload, honors pause, and saves real elapsed time", as
     .click();
   await page.getByRole("button", { name: "Resume timer" }).click();
   await page.clock.fastForward("00:00:05");
-  await page.getByRole("button", { name: "Finish & save practice" }).click();
+  await page.getByRole("button", { name: "Finish practice" }).click();
   await expect(
-    page.getByRole("heading", { name: "Practice recorded." }),
+    page.getByRole("heading", { name: "YOU SHOWED UP!" }),
   ).toBeVisible();
   const persisted = await page.evaluate(
     () => JSON.parse(localStorage.getItem("practicepal-storage")!).state,
@@ -185,7 +181,7 @@ test("training library, privacy, and mobile layout work", async ({
   page,
 }, testInfo) => {
   await setup(page);
-  await page.getByRole("tab", { name: "Training" }).click();
+  await page.getByRole("tab", { name: "Play" }).click();
   await page.getByRole("button", { name: "Fielding", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Practice: Ground-ball fundamentals" }),
@@ -195,6 +191,9 @@ test("training library, privacy, and mobile layout work", async ({
   ).toHaveCount(0);
   await page
     .getByRole("button", { name: "Practice: Ground-ball fundamentals" })
+    .click();
+  await page
+    .getByRole("button", { name: "Show drill details", exact: true })
     .click();
   await expect(
     page

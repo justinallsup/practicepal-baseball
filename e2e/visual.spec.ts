@@ -35,7 +35,7 @@ test("editorial assets, fonts, and core screens render within the viewport", asy
   await page.getByRole("heading", { name: "Let’s go, Riley." }).waitFor();
   await page.evaluate(() => document.fonts.ready);
   await page.screenshot({ path: testInfo.outputPath("today-ready.png") });
-  for (const name of ["Today", "Training", "Progress", "Rewards"]) {
+  for (const name of ["Today", "Play", "Progress", "Rewards"]) {
     await page.getByRole("tab", { name, exact: true }).click();
     expect(
       await page.evaluate(

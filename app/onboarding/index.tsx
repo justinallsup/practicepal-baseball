@@ -57,7 +57,7 @@ export default function Welcome() {
               }}
             />
             <Text style={[S.eyebrow, { color: C.lime, fontSize: 9 }]}>
-              A LITTLE BETTER. EVERY PRACTICE.
+              A LITTLE PRACTICE. A LOT TO PLAY FOR.
             </Text>
           </View>
           <View style={{ gap: 20, maxWidth: wide ? 520 : 300 }}>
@@ -73,8 +73,8 @@ export default function Welcome() {
                 },
               ]}
             >
-              Great habits{"\n"}start in the{"\n"}
-              <Text style={{ color: C.lime }}>backyard.</Text>
+              Great habits.{"\n"}Even better{"\n"}
+              <Text style={{ color: C.lime }}>rewards.</Text>
             </Text>
             <Text
               style={[
@@ -87,8 +87,8 @@ export default function Welcome() {
                 },
               ]}
             >
-              Less “you should practice.” More “let’s go.” Build a routine your
-              player wants to keep, one small win at a time.
+              Choose a reward they’re excited about. Turn real practice into
+              points, celebrate their effort, and keep the fun going.
             </Text>
           </View>
           <View style={{ gap: 14, maxWidth: 340 }}>
@@ -117,14 +117,14 @@ export default function Welcome() {
             }}
           >
             <View style={S.between}>
-              <Text style={S.eyebrow}>THE PRACTICE MINDSET</Text>
+              <Text style={S.eyebrow}>THE FUN STARTS HERE</Text>
               <Star color={C.gold} size={17} />
             </View>
             <Text style={[S.h3, { fontSize: 19 }]}>
-              Show up. Have fun.{"\n"}Do it again.
+              Play ball. Stack points.{"\n"}Celebrate together.
             </Text>
             <View style={{ flexDirection: "row", gap: 5 }}>
-              {["PLAN", "PRACTICE", "CELEBRATE"].map((t) => (
+              {["PICK A REWARD", "PLAY", "CELEBRATE"].map((t) => (
                 <View
                   key={t}
                   style={{

@@ -23,7 +23,7 @@ export default function Privacy() {
         <Text style={S.h2}>What stays on your device</Text>
         <Text style={S.body}>
           The player nickname, practice goals, logs, timer sessions, feelings,
-          benchmarks, points, reward requests, and app preferences are stored in
+          benchmarks, points, chosen reward goals, reward requests, and app preferences are stored in
           this browser’s local storage or the native app’s device storage. This
           release has no cloud accounts, public profiles, chat, advertising
           trackers, or cross-device sync. Other people with access to this
